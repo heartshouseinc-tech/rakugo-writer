@@ -1422,12 +1422,12 @@ async function loadWorksInto(elId){
   var el=document.getElementById(elId); if(!cu||!el) return;
   try{
     var{db,collection,getDocs,orderBy,query}=window.__fw;
-    var snap=await getDocs(query(collection(db,'rakugo_works/'+cu.uid+'/works'),orderBy('createdAt','desc')));
+    var snap=await getDocs(query(collection(db,'rakugo_works/'+cu.uid+'/works'),orderBy('updatedAt','desc')));
     if(snap.empty){el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">まだネタがありません</div>';return;}
     var html='';
-    snap.forEach(function(d){ var w=d.data(); var chaps=Object.keys(w.chapters||{}).length; var date=w.createdAt?.toDate?w.createdAt.toDate().toLocaleDateString('ja-JP'):''; html+='<div class="work-item" onclick="openWork(\''+d.id+'\')"><div class="wi-ico">🏮</div><div><div class="wi-title">'+(w.title||'無題')+'</div><div class="wi-meta">'+(w.genre||'')+' · '+(w.struct||'')+' · '+chaps+'段 · '+date+'</div></div><div class="wi-go">▶</div></div>'; });
+    snap.forEach(function(d){ var w=d.data(); var chaps=Object.keys(w.chapters||{}).length; var ts=w.updatedAt||w.createdAt; var date=ts?.toDate?ts.toDate().toLocaleDateString('ja-JP'):''; html+='<div class="work-item" onclick="openWork(\''+d.id+'\')"><div class="wi-ico">🏮</div><div><div class="wi-title">'+(w.title||'無題')+'</div><div class="wi-meta">'+(w.genre||'')+' · '+(w.struct||'')+' · '+chaps+'段 · '+date+'</div></div><div class="wi-go">▶</div></div>'; });
     el.innerHTML=html;
-  }catch(e){ el.innerHTML='<div style="color:#c03020;font-size:12px;text-align:center;padding:12px;">エラー</div>'; }
+  }catch(e){ console.error('loadWorksInto error:',e); el.innerHTML='<div style="color:#c03020;font-size:12px;text-align:center;padding:12px;">エラー: '+(e.message||e.code||'不明')+'</div>'; }
 }
 async function openWork(wid){
   if(!cu) return;
