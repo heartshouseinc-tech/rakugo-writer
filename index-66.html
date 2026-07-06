@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAKUGO WRITER AI — 14AI寄席・落語創作スタジオ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Noto+Serif+JP:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#f7f0e0;--bg2:#efe6d2;--bg3:#e5d9c0;--card:#fffdf7;
+  --text:#1a1410;--text2:#3a2a18;--muted:#8a7a5a;--border:#d0bd8e;
+  --shadow:0 2px 10px rgba(0,0,0,.08);
+  --coord:#1a4a7a;--coord-l:#4a7ab0;--coord-bg:#e8f0fa;
+  --mgr:#a01860;--mgr-l:#e04a8a;--mgr-bg:#ffe8f4;
+  --writer:#1a7a40;--writer-l:#4ab870;--writer-bg:#e8f8ee;
+  --dir:#8a4a00;--dir-l:#d07820;--dir-bg:#fff3e0;
+  --editor:#a01818;--editor-l:#d04040;--editor-bg:#ffecec;
+  --gold:#9a6e1a;--gold-acc:#c8a84b;--gold-bg:#fff8e0;
+  --asst:#1a7a7a;--asst-l:#4ababa;--asst-bg:#e8f8f8;
+  --sub:#6a7a1a;--sub-l:#a0b840;--sub-bg:#f0f5e0;
+  --akuta:#8a1a1a;--akuta-l:#d04040;--akuta-bg:#fff0f0;
+  --naoki:#1a4a1a;--naoki-l:#409040;--naoki-bg:#f0fff0;
+  --rbun:#4a1a6a;--rbun-l:#9a4ac0;--rbun-bg:#f5e8ff;
+  --rsf:#1a3a6a;--rsf-l:#4a6ab0;--rsf-bg:#e8eeff;
+  --rjid:#6a3a00;--rjid-l:#b06820;--rjid-bg:#fff5e0;
+  --pubA:#2a1a5a;--pubA-l:#6a4ab0;--pubA-bg:#f0ebff;
+  --pubB:#1a4a2a;--pubB-l:#3a9a5a;--pubB-bg:#e8f8ee;
+  --pubC:#5a1a1a;--pubC-l:#c04040;--pubC-bg:#fff0f0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Serif JP',serif;display:flex;flex-direction:column;}
+
+/* ── LOGIN ── */
+#loginScreen{display:none;position:fixed;inset:0;background:linear-gradient(160deg,#280a0a,#401212);align-items:center;justify-content:center;padding:20px;z-index:9999;}
+#loginScreen.active{display:flex;}
+.lcard{background:#fffdf7;border-radius:16px;padding:28px 22px;width:min(360px,100%);box-shadow:0 16px 48px rgba(0,0,0,.3);}
+.llogo{text-align:center;margin-bottom:20px;}
+.lico{font-size:44px;display:block;margin-bottom:8px;}
+.ltitle{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:22px;color:var(--text);}
+.lsub{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.6;}
+.lfg{margin-bottom:11px;}
+.lfg label{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--editor);margin-bottom:4px;}
+.lfg input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:15px;outline:none;background:var(--bg);color:var(--text);font-family:inherit;}
+.lfg input:focus{border-color:var(--editor-l);}
+.lerr{color:#c03020;font-size:12px;text-align:center;min-height:16px;margin-top:4px;}
+.lbtn{width:100%;padding:12px;background:linear-gradient(135deg,var(--editor-l),#7a1010);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+
+/* ── HEADER ── */
+.hd{background:#fffdf7;border-bottom:2px solid var(--border);padding:8px 14px;display:none;align-items:center;gap:8px;flex-shrink:0;box-shadow:var(--shadow);}
+.hd-title{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:15px;color:var(--text);flex:1;}
+.hd-badges{display:flex;gap:3px;flex-wrap:wrap;}
+.ai-badge{font-family:'Space Mono',monospace;font-size:7px;padding:2px 6px;border-radius:7px;letter-spacing:.04em;font-weight:700;}
+.ab-coord{background:var(--coord-bg);color:var(--coord);border:1px solid var(--coord-l);}
+.ab-mgr{background:var(--mgr-bg);color:var(--mgr);border:1px solid var(--mgr-l);}
+.ab-writer{background:var(--writer-bg);color:var(--writer);border:1px solid var(--writer-l);}
+.ab-dir{background:var(--dir-bg);color:var(--dir);border:1px solid var(--dir-l);}
+.ab-editor{background:var(--editor-bg);color:var(--editor);border:1px solid var(--editor-l);}
+.hdbtn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:4px 9px;border-radius:7px;cursor:pointer;}
+
+/* ── PHASE BAR ── */
+.phase-bar{background:var(--bg2);border-bottom:1px solid var(--border);display:none;flex-shrink:0;overflow-x:auto;}
+.phase-steps{display:flex;min-width:max-content;}
+.pstep{flex-shrink:0;padding:7px 10px;text-align:center;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.pstep.active{color:var(--editor);border-bottom-color:var(--editor-l);}
+.pstep.done{color:var(--writer);border-bottom-color:var(--writer-l);}
+.pstep .ps-ico{font-size:12px;display:block;margin-bottom:1px;}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.screen{display:none;}
+.screen.show{display:flex;flex-direction:column;flex:1;}
+
+/* ── PHASE 0: TOP ── */
+#p0{background:linear-gradient(180deg,#ffecec,var(--bg));align-items:center;text-align:center;padding:20px 16px 30px;}
+.top-ico{font-size:56px;margin-bottom:12px;filter:drop-shadow(0 4px 12px rgba(160,24,24,.25));}
+.top-title{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:clamp(24px,7vw,32px);color:var(--text);margin-bottom:7px;}
+.top-title span{color:var(--editor-l);}
+.top-sub{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:18px;max-width:360px;}
+.five-ai{display:flex;gap:5px;width:100%;max-width:400px;margin-bottom:18px;}
+.fai{flex:1;border-radius:9px;padding:9px 4px;text-align:center;min-width:48px;}
+.fai.coord{background:var(--coord-bg);border:1px solid var(--coord-l);}
+.fai.mgr{background:var(--mgr-bg);border:1px solid var(--mgr-l);}
+.fai.writer{background:var(--writer-bg);border:1px solid var(--writer-l);}
+.fai.dir{background:var(--dir-bg);border:1px solid var(--dir-l);}
+.fai.editor{background:var(--editor-bg);border:1px solid var(--editor-l);}
+.fai-ico{font-size:18px;display:block;margin-bottom:3px;}
+.fai-name{font-family:'Space Mono',monospace;font-size:7px;font-weight:700;letter-spacing:.03em;}
+.fai.coord .fai-name{color:var(--coord);}
+.fai.mgr .fai-name{color:var(--mgr);}
+.fai.writer .fai-name{color:var(--writer);}
+.fai.dir .fai-name{color:var(--dir);}
+.fai.editor .fai-name{color:var(--editor);}
+.fai-role{font-size:8px;color:var(--muted);margin-top:2px;line-height:1.3;}
+.start-btn{background:linear-gradient(135deg,var(--editor-l),#7a1010);color:#fff;border:none;border-radius:12px;padding:14px 0;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.05em;width:100%;max-width:400px;box-shadow:0 4px 16px rgba(160,24,24,.25);}
+.works-btn{background:var(--card);border:1.5px solid var(--border);color:var(--text2);border-radius:10px;padding:10px 0;font-size:12px;cursor:pointer;margin-top:8px;font-family:inherit;width:100%;max-width:400px;}
+.works-list-top{width:100%;max-width:400px;margin-top:10px;}
+
+/* ── PHASE 1: SETUP ── */
+#p1{padding:16px;overflow-y:auto;}
+.setup-hd{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:20px;color:var(--text);margin-bottom:4px;}
+.setup-sub{font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6;}
+.sec-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--editor);margin-bottom:8px;text-transform:uppercase;}
+.setup-sec{margin-bottom:18px;}
+.genre-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.genre-btn,.struct-btn,.style-btn{cursor:pointer;font-family:'Noto Serif JP',serif;transition:all .2s;}
+.genre-btn{padding:10px 8px;border:1.5px solid var(--border);border-radius:9px;background:var(--card);color:var(--text2);text-align:left;box-shadow:var(--shadow);}
+.genre-btn:hover,.genre-btn.sel{background:var(--editor-bg);border-color:var(--editor-l);color:var(--editor);}
+.g-ico{font-size:18px;display:block;margin-bottom:3px;}
+.g-name{font-weight:700;font-size:13px;}
+.g-desc{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.struct-grid{display:flex;flex-direction:column;gap:6px;}
+.struct-btn{padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--card);color:var(--text2);display:flex;gap:10px;align-items:center;box-shadow:var(--shadow);}
+.struct-btn:hover,.struct-btn.sel{background:var(--coord-bg);border-color:var(--coord-l);color:var(--coord);}
+.sb-ico{font-size:20px;flex-shrink:0;}
+.sb-name{font-weight:700;font-size:13px;}
+.sb-desc{font-size:10px;color:var(--muted);margin-top:1px;line-height:1.4;}
+.style-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.style-btn{padding:7px 13px;border:1.5px solid var(--border);border-radius:16px;background:var(--card);color:var(--muted);font-size:11px;}
+.style-btn:hover,.style-btn.sel{background:var(--writer-bg);border-color:var(--writer-l);color:var(--writer);}
+.sage-btn{padding:7px 13px;border:1.5px solid var(--border);border-radius:16px;background:var(--card);color:var(--muted);font-size:11px;cursor:pointer;font-family:'Noto Serif JP',serif;transition:all .2s;}
+.sage-btn:hover,.sage-btn.sel{background:var(--dir-bg);border-color:var(--dir-l);color:var(--dir);}
+.setup-next{width:100%;padding:13px;background:linear-gradient(135deg,var(--editor-l),#7a1010);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;}
+.setup-next:disabled{background:var(--bg3);color:var(--muted);cursor:not-allowed;}
+
+/* ── PHASE 2: INTERVIEW ── */
+#p2{flex-direction:column;}
+.iv-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;background:linear-gradient(180deg,var(--coord-bg),var(--bg));}
+.iv-msg{display:flex;gap:8px;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.iv-msg.user{flex-direction:row-reverse;}
+.iv-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;border:1.5px solid var(--border);}
+.iv-msg.ai .iv-av{background:var(--coord-bg);border-color:var(--coord-l);}
+.iv-msg.user .iv-av{background:var(--editor-bg);border-color:var(--editor-l);}
+.iv-bub{max-width:88%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.8;word-break:break-word;}
+.iv-msg.ai .iv-bub{background:#fff;border:1px solid #c8d8f0;color:var(--text);border-radius:3px 14px 14px 14px;box-shadow:0 1px 4px rgba(0,40,120,.07);}
+.iv-msg.user .iv-bub{background:linear-gradient(135deg,var(--editor),#c04040);color:#fff;border-radius:14px 3px 14px 14px;}
+.iv-typing span{width:7px;height:7px;border-radius:50%;background:var(--coord-l);display:inline-block;margin:0 2px;animation:td .9s infinite;}
+.iv-typing span:nth-child(2){animation-delay:.25s;}
+.iv-typing span:nth-child(3){animation-delay:.5s;}
+@keyframes td{0%,80%,100%{transform:scale(.4);opacity:.2}40%{transform:scale(1.1);opacity:1}}
+.iv-prog-wrap{padding:6px 12px;background:#fff;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.iv-prog-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;}
+.iv-prog-fill{height:100%;background:linear-gradient(to right,var(--coord-l),var(--editor-l));border-radius:2px;transition:width .5s;}
+.iv-prog-txt{font-family:'Space Mono',monospace;font-size:9px;color:var(--coord);white-space:nowrap;}
+.iv-inp-wrap{background:#fff;border-top:1px solid var(--border);padding:8px 10px;flex-shrink:0;}
+.iv-inp-bar{display:flex;gap:6px;align-items:flex-end;}
+.iv-ta{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px;resize:none;outline:none;line-height:1.5;max-height:90px;min-height:40px;font-family:inherit;color:var(--text);}
+.iv-ta:focus{border-color:var(--coord-l);background:#fff;}
+.iv-send{background:linear-gradient(135deg,var(--coord-l),var(--coord));color:#fff;border:none;border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer;flex-shrink:0;}
+.iv-send:disabled{background:var(--bg3);cursor:not-allowed;}
+.next-phase-wrap{padding:10px 12px;background:#fff;border-top:2px solid var(--coord-l);display:none;}
+.next-phase-btn{width:100%;padding:12px;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* ── PHASE CONTENT WRAPPER ── */
+.phase-wrap{overflow-y:auto;flex:1;padding:14px;}
+.phase-hd{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.phase-hd-ico{font-size:22px;}
+.phase-hd-title{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:17px;color:var(--text);flex:1;}
+.loading-box{text-align:center;padding:32px 16px;}
+.loading-ico{font-size:40px;display:block;margin-bottom:10px;animation:spin 2s linear infinite;}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.loading-txt{font-size:12px;color:var(--muted);line-height:1.8;}
+
+/* ── COORD RESULT ── */
+.ref-item{background:var(--coord-bg);border:1px solid rgba(74,122,176,.3);border-radius:8px;padding:10px 12px;margin-bottom:6px;}
+.ref-title{font-size:13px;font-weight:700;color:var(--coord);margin-bottom:3px;}
+.ref-why{font-size:11px;color:var(--text2);line-height:1.6;}
+.synopsis-box{background:var(--gold-bg);border:1px solid rgba(200,168,75,.4);border-radius:10px;padding:14px;margin-bottom:12px;}
+.syn-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--gold);margin-bottom:6px;}
+.syn-title{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:18px;color:var(--text);margin-bottom:6px;}
+.syn-text{font-size:13px;line-height:1.9;color:var(--text2);}
+.sage-box{background:var(--dir-bg);border:1.5px solid var(--dir-l);border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+.sage-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--dir);margin-bottom:5px;}
+.sage-text{font-size:14px;font-weight:700;line-height:1.8;color:var(--text);}
+.chap-outline-item{display:flex;gap:10px;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;box-shadow:var(--shadow);}
+.co-num{font-family:'Yuji Syuku',serif;font-size:18px;color:var(--coord-l);opacity:.5;min-width:28px;font-weight:700;}
+.co-title{font-size:13px;font-weight:700;color:var(--text);}
+.co-turn{font-size:10px;color:var(--coord);margin-top:2px;}
+
+/* ── 師匠レビュー ── */
+.dir-review{background:var(--dir-bg);border:2px solid var(--dir-l);border-radius:10px;padding:14px;margin:12px 0;}
+.dir-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.dir-verdict{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;}
+.dir-verdict.ok{background:#e8f5e8;color:#1a6a2a;border:1px solid #90c890;}
+.dir-verdict.revise{background:#fff3e0;color:var(--dir);border:1px solid var(--dir-l);}
+.dir-verdict.rewrite{background:#fff0f0;color:#c03020;border:1px solid #f0a0a0;}
+.dir-comment{font-size:13px;line-height:1.8;color:var(--text2);}
+.dir-instructions{margin-top:8px;padding:8px 12px;background:#fff;border-radius:6px;border:1px solid var(--dir-l);}
+.di-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;color:var(--dir);margin-bottom:4px;}
+.di-text{font-size:12px;color:var(--text2);line-height:1.7;}
+
+/* ── 人物帳 ── */
+.char-card{background:var(--card);border:1px solid rgba(224,74,138,.3);border-radius:10px;padding:13px;margin-bottom:10px;box-shadow:var(--shadow);}
+.char-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.char-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--mgr-bg),var(--editor-bg));display:flex;align-items:center;justify-content:center;font-size:18px;border:1.5px solid var(--mgr-l);}
+.char-name{font-size:15px;font-weight:700;color:var(--text);}
+.char-role{font-family:'Space Mono',monospace;font-size:9px;color:var(--mgr);margin-top:1px;}
+.char-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.cf{background:var(--bg2);border-radius:6px;padding:7px 9px;}
+.cf-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--muted);margin-bottom:2px;}
+.cf-val{font-size:11px;color:var(--text2);line-height:1.5;}
+.fs-item{display:flex;gap:8px;padding:7px 10px;background:var(--mgr-bg);border-radius:6px;margin-bottom:4px;font-size:12px;color:var(--text2);line-height:1.5;border:1px solid rgba(224,74,138,.2);}
+
+/* ── WRITING ── */
+#p5{flex-direction:column;}
+.writing-scroll{flex:1;overflow-y:auto;padding:14px;}
+.book-hd-title{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:clamp(18px,6vw,26px);color:var(--text);text-align:center;margin-bottom:3px;}
+.book-hd-sub{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-align:center;letter-spacing:.1em;margin-bottom:14px;}
+.gen-all-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--writer-l),#1a7a40);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:inherit;box-shadow:0 3px 10px rgba(26,120,64,.2);}
+.gen-all-btn:disabled{background:var(--bg3);color:var(--muted);box-shadow:none;cursor:not-allowed;}
+.chap-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow);}
+.chap-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;}
+.chap-num{font-family:'Yuji Syuku',serif;font-size:20px;color:var(--writer-l);opacity:.45;min-width:28px;font-weight:700;}
+.chap-info{flex:1;}
+.chap-tag{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.12em;color:var(--writer);text-transform:uppercase;margin-bottom:2px;}
+.chap-ttl{font-size:14px;font-weight:700;color:var(--text);}
+.chap-stat{font-size:17px;}
+.chap-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border);background:var(--bg);}
+.chap-body.show{display:block;}
+.brief-box{background:var(--mgr-bg);border:1px solid rgba(224,74,138,.25);border-radius:7px;padding:10px 12px;margin:10px 0;}
+.brief-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;color:var(--mgr);margin-bottom:4px;}
+.brief-txt{font-size:11px;color:var(--text2);line-height:1.7;}
+.dir-chap-review{background:var(--dir-bg);border:1px solid var(--dir-l);border-radius:7px;padding:10px 12px;margin:8px 0;}
+.dir-chap-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.12em;color:var(--dir);margin-bottom:4px;}
+.chap-text{font-size:13px;line-height:2.1;color:var(--text2);white-space:pre-wrap;padding:10px 0;}
+.gen-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--writer-bg),#d0f0e0);border:1.5px solid var(--writer-l);color:var(--writer);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;font-family:inherit;}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed;}
+.generating{color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;padding:8px 0;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── PHASE 6: 客席批評 ── */
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0;}
+.score-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;box-shadow:var(--shadow);}
+.sc-chap{font-family:'Space Mono',monospace;font-size:9px;color:var(--editor);margin-bottom:4px;letter-spacing:.08em;}
+.sc-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.sc-bars{display:flex;flex-direction:column;gap:3px;}
+.sc-bar-row{display:flex;gap:5px;align-items:center;}
+.sc-bar-label{font-family:'Space Mono',monospace;font-size:7px;color:var(--muted);min-width:34px;}
+.sc-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.sc-bar-fill{height:100%;border-radius:3px;transition:width .8s ease;}
+.sc-overall{font-family:'Yuji Syuku',serif;font-size:20px;color:var(--editor);text-align:center;margin-top:5px;font-weight:700;}
+.sc-weak{font-size:10px;color:var(--text2);margin-top:4px;line-height:1.5;}
+.editor-final{background:var(--editor-bg);border:2px solid var(--editor-l);border-radius:12px;padding:16px;margin:12px 0;}
+.ef-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--editor);margin-bottom:10px;}
+.ef-verdict{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.ef-review{font-size:13px;line-height:1.9;color:var(--text2);}
+.ef-improve{margin-top:10px;padding:10px 12px;background:#fff;border-radius:7px;border:1px solid var(--editor-l);}
+.ef-improve-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;color:var(--editor);margin-bottom:5px;}
+
+/* ── PHASE 8: COMPLETE ── */
+.comp-ico{font-size:56px;margin-bottom:12px;filter:drop-shadow(0 4px 12px rgba(160,24,24,.3));}
+.comp-title{font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:22px;color:var(--text);margin-bottom:6px;}
+.comp-sub{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:16px;}
+/* めくり（寄席の演目札）風 */
+.book-cover{background:#fbf4e0;border:2.5px solid #2a2018;border-radius:6px;padding:20px 18px 16px;width:100%;max-width:300px;margin-bottom:14px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25);}
+.bc-genre{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--editor);margin-bottom:12px;}
+.bc-title{writing-mode:vertical-rl;font-family:'Yuji Syuku','Noto Serif JP',serif;font-size:clamp(30px,10vw,44px);font-weight:700;color:#1a1410;margin:0 auto 12px;min-height:190px;display:inline-block;letter-spacing:.1em;}
+.bc-line{width:40px;height:2px;background:var(--editor);margin:0 auto 10px;}
+.bc-auth{font-family:'Yuji Syuku',serif;font-size:11px;color:#8a6a3a;letter-spacing:.3em;}
+.act-btns{display:flex;flex-direction:column;gap:7px;width:100%;max-width:380px;}
+.act-btn{padding:12px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.act-copy{background:var(--gold-bg);color:var(--gold);border:1.5px solid var(--gold-acc);}
+.act-restart{background:linear-gradient(135deg,var(--editor-l),#7a1010);color:#fff;}
+.works-sec{width:100%;max-width:380px;margin-top:14px;text-align:left;}
+.ws-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--editor);margin-bottom:8px;}
+.work-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;box-shadow:var(--shadow);}
+.wi-ico{font-size:24px;}
+.wi-title{font-size:13px;font-weight:700;color:var(--text);}
+.wi-meta{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
+.wi-go{color:var(--editor-l);font-size:14px;}
+.approve-btn,.to-next-btn{width:100%;padding:12px;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px;}
+.sec-label-blk{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--coord);margin-bottom:8px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<!-- Firebase -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,collection,doc,setDoc,getDoc,getDocs,orderBy,query,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const cfg={apiKey:"AIzaSyCVk2miG5TK1ffTofXLh0hHgeSbOvmIgZ8",authDomain:"kensetsu-nippo-842a2.firebaseapp.com",projectId:"kensetsu-nippo-842a2",storageBucket:"kensetsu-nippo-842a2.firebasestorage.app",messagingSenderId:"702880974315",appId:"1:702880974315:web:985321dc9180046629c5ae"};
+const app=initializeApp(cfg);const auth=getAuth(app);const db=getFirestore(app);
+window.__fw={auth,db,signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,doc,setDoc,getDoc,getDocs,orderBy,query,serverTimestamp};
+window.dispatchEvent(new Event('fbReady'));
+</script>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="active">
+  <div class="lcard">
+    <div class="llogo"><span class="lico">🏮</span><div class="ltitle">RAKUGO WRITER AI</div><div class="lsub">14AI寄席・落語創作スタジオ<br>立作者・人物帳・噺家・師匠・前座<br>お客・審査員・三つの席</div></div>
+    <div class="lfg"><label>MAIL</label><input type="email" id="dEmail" autocomplete="email" placeholder="example@mail.com"></div>
+    <div class="lfg"><label>PASSWORD</label><input type="password" id="dPass" autocomplete="current-password" placeholder="パスワード"></div>
+    <div class="lerr" id="dErr"></div>
+    <button class="lbtn" onclick="doLogin()">🔑 木戸をくぐる（ログイン）</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hd" id="appHd">
+  <div class="hd-title">🏮 RAKUGO WRITER AI</div>
+  <div class="hd-badges">
+    <span class="ai-badge ab-coord">立作者</span>
+    <span class="ai-badge ab-mgr">人物帳</span>
+    <span class="ai-badge ab-writer">噺家</span>
+    <span class="ai-badge ab-dir">師匠</span>
+    <span class="ai-badge" style="background:var(--asst-bg);color:var(--asst);border:1px solid var(--asst-l);">前座</span>
+    <span class="ai-badge" style="background:var(--sub-bg);color:var(--sub);border:1px solid var(--sub-l);">お客</span>
+    <span class="ai-badge ab-editor">寄席通</span>
+    <span class="ai-badge" style="background:var(--akuta-bg);color:var(--akuta);border:1px solid var(--akuta-l);">審査員</span>
+    <span class="ai-badge" style="background:var(--rbun-bg);color:var(--rbun);border:1px solid var(--rbun-l);">ご隠居</span>
+    <span class="ai-badge" style="background:var(--rsf-bg);color:var(--rsf);border:1px solid var(--rsf-l);">大学生</span>
+    <span class="ai-badge" style="background:var(--rjid-bg);color:var(--rjid);border:1px solid var(--rjid-l);">評論家</span>
+  </div>
+  <button class="hdbtn" onclick="doLogout()">退出</button>
+</div>
+
+<!-- PHASE BAR -->
+<div class="phase-bar" id="phaseBar">
+  <div class="phase-steps">
+    <div class="pstep active" id="ps0"><span class="ps-ico">🏮</span>TOP</div>
+    <div class="pstep" id="ps1"><span class="ps-ico">⚙️</span>設定</div>
+    <div class="pstep" id="ps2"><span class="ps-ico">🎤</span>聞き取り</div>
+    <div class="pstep" id="ps3"><span class="ps-ico">📜</span>構成</div>
+    <div class="pstep" id="ps4"><span class="ps-ico">👥</span>人物帳</div>
+    <div class="pstep" id="ps5"><span class="ps-ico">✍️</span>執筆</div>
+    <div class="pstep" id="ps6"><span class="ps-ico">👏</span>客席</div>
+    <div class="pstep" id="ps7"><span class="ps-ico">🎪</span>番組審査</div>
+    <div class="pstep" id="ps8"><span class="ps-ico">🏆</span>完成</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- P0: TOP -->
+<div id="p0" class="screen show">
+  <div class="top-ico">🏮</div>
+  <h1 class="top-title"><span>14AI</span>寄席 落語Writer</h1>
+  <p class="top-sub">14のAIが寄席の裏方と客席に分かれて<br>世界に一席だけの創作落語を仕立てる</p>
+  <div class="five-ai" style="flex-wrap:wrap;justify-content:center;gap:4px;max-width:440px;">
+    <div class="fai coord"><span class="fai-ico">📜</span><div class="fai-name">立作者</div><div class="fai-role">構成</div></div>
+    <div class="fai mgr"><span class="fai-ico">👥</span><div class="fai-name">人物帳</div><div class="fai-role">登場人物</div></div>
+    <div class="fai writer"><span class="fai-ico">✍️</span><div class="fai-name">噺家</div><div class="fai-role">台本執筆</div></div>
+    <div class="fai dir"><span class="fai-ico">🎯</span><div class="fai-name">師匠</div><div class="fai-role">ダメ出し</div></div>
+    <div class="fai" style="background:var(--asst-bg);border:1px solid var(--asst-l);"><span class="fai-ico">🧹</span><div class="fai-name" style="color:var(--asst);">前座</div><div class="fai-role">整合性</div></div>
+    <div class="fai" style="background:var(--sub-bg);border:1px solid var(--sub-l);"><span class="fai-ico">👏</span><div class="fai-name" style="color:var(--sub);">お客</div><div class="fai-role">笑い曲線</div></div>
+    <div class="fai editor"><span class="fai-ico">🍵</span><div class="fai-name">寄席通</div><div class="fai-role">一席批評</div></div>
+    <div class="fai" style="background:var(--akuta-bg);border:1px solid var(--akuta-l);"><span class="fai-ico">🏆</span><div class="fai-name" style="color:var(--akuta);">審査員</div><div class="fai-role">古典×新作</div></div>
+    <div class="fai" style="background:var(--rbun-bg);border:1px solid var(--rbun-l);"><span class="fai-ico">🍶</span><div class="fai-name" style="color:var(--rbun);">ご隠居</div><div class="fai-role">常連客</div></div>
+    <div class="fai" style="background:var(--rsf-bg);border:1px solid var(--rsf-l);"><span class="fai-ico">🎒</span><div class="fai-name" style="color:var(--rsf);">大学生</div><div class="fai-role">初めての客</div></div>
+    <div class="fai" style="background:var(--rjid-bg);border:1px solid var(--rjid-l);"><span class="fai-ico">🖋️</span><div class="fai-name" style="color:var(--rjid);">評論家</div><div class="fai-role">目利き</div></div>
+    <div class="fai" style="background:var(--pubA-bg);border:1px solid var(--pubA-l);"><span class="fai-ico">🎪</span><div class="fai-name" style="color:var(--pubA);">老舗寄席</div><div class="fai-role">定席番組</div></div>
+    <div class="fai" style="background:var(--pubB-bg);border:1px solid var(--pubB-l);"><span class="fai-ico">📺</span><div class="fai-name" style="color:var(--pubB);">テレビ</div><div class="fai-role">演芸番組</div></div>
+    <div class="fai" style="background:var(--pubC-bg);border:1px solid var(--pubC-l);"><span class="fai-ico">📱</span><div class="fai-name" style="color:var(--pubC);">配信</div><div class="fai-role">演芸ch</div></div>
+  </div>
+  <button class="start-btn" onclick="goP(1)">✦ 一席こしらえる</button>
+  <button class="works-btn" onclick="loadWorksInto('worksListTop')">📚 ネタ帳を開く</button>
+  <div class="works-list-top" id="worksListTop"></div>
+</div>
+
+<!-- P1: SETUP -->
+<div id="p1" class="screen">
+  <div class="setup-hd">噺の仕立て</div>
+  <div class="setup-sub">噺のジャンル・名作の型・サゲ・語り口を選んでください</div>
+  <div class="setup-sec"><div class="sec-label">🏮 噺のジャンル</div>
+    <div class="genre-grid">
+      <button class="genre-btn" onclick="selGenre('滑稽噺',this)"><span class="g-ico">😆</span><div class="g-name">滑稽噺</div><div class="g-desc">失敗・勘違い・軽妙な掛け合い</div></button>
+      <button class="genre-btn" onclick="selGenre('人情噺',this)"><span class="g-ico">🍶</span><div class="g-name">人情噺</div><div class="g-desc">涙と笑い・夫婦と親子の情</div></button>
+      <button class="genre-btn" onclick="selGenre('怪談噺',this)"><span class="g-ico">👻</span><div class="g-name">怪談噺</div><div class="g-desc">背筋と笑いの二刀流</div></button>
+      <button class="genre-btn" onclick="selGenre('与太郎噺',this)"><span class="g-ico">🙃</span><div class="g-name">与太郎噺</div><div class="g-desc">愛すべき呑気者が主役</div></button>
+      <button class="genre-btn" onclick="selGenre('長屋噺',this)"><span class="g-ico">🏘️</span><div class="g-name">長屋噺</div><div class="g-desc">ご隠居と八っつぁんの世界</div></button>
+      <button class="genre-btn" onclick="selGenre('新作・現代落語',this)"><span class="g-ico">📱</span><div class="g-name">新作・現代落語</div><div class="g-desc">舞台は現代・スマホもアリ</div></button>
+    </div>
+  </div>
+  <div class="setup-sec"><div class="sec-label">📜 名作の構成型（古典落語の骨格から選ぶ）</div>
+    <div class="struct-grid">
+      <button class="struct-btn" onclick="selStruct('時そば型',this)"><span class="sb-ico">🍜</span><div><div class="sb-name">時そば型（模倣失敗）</div><div class="sb-desc">鮮やかな手口を見て真似て、少しずつズレて大失敗</div></div></button>
+      <button class="struct-btn" onclick="selStruct('まんじゅうこわい型',this)"><span class="sb-ico">🍡</span><div><div class="sb-name">まんじゅうこわい型（逆転知恵）</div><div class="sb-desc">嘘の弱点で皆を出し抜き、最後にもう一枚上手</div></div></button>
+      <button class="struct-btn" onclick="selStruct('芝浜型',this)"><span class="sb-ico">🌅</span><div><div class="sb-name">芝浜型（人情・歳月）</div><div class="sb-desc">夢と改心、歳月を経ての告白。笑って泣ける人情の型</div></div></button>
+      <button class="struct-btn" onclick="selStruct('寿限無型',this)"><span class="sb-ico">🗣️</span><div><div class="sb-name">寿限無型（言葉の反復）</div><div class="sb-desc">長い言葉・決まり文句の繰り返しが雪だるま式に可笑しくなる</div></div></button>
+      <button class="struct-btn" onclick="selStruct('死神型',this)"><span class="sb-ico">💀</span><div><div class="sb-name">死神型（禁忌と代償）</div><div class="sb-desc">不思議な力を得て、調子に乗って禁を破り、代償を払う</div></div></button>
+      <button class="struct-btn" onclick="selStruct('目黒のさんま型',this)"><span class="sb-ico">🐟</span><div><div class="sb-name">目黒のさんま型（世間知らず）</div><div class="sb-desc">別世界の人が本物を知り、形式にこだわって台無しに</div></div></button>
+      <button class="struct-btn" onclick="selStruct('自由構成',this)"><span class="sb-ico">🎨</span><div><div class="sb-name">自由構成</div><div class="sb-desc">マクラ→本題→サゲの基本だけ守って自由に</div></div></button>
+    </div>
+  </div>
+  <div class="setup-sec"><div class="sec-label">🎯 サゲ（オチ）の型</div>
+    <div class="style-grid">
+      <button class="sage-btn sel" onclick="selSage('お任せ',this)">お任せ</button>
+      <button class="sage-btn" onclick="selSage('地口オチ',this)">地口オチ（駄洒落）</button>
+      <button class="sage-btn" onclick="selSage('考えオチ',this)">考えオチ（一拍おいて）</button>
+      <button class="sage-btn" onclick="selSage('逆さオチ',this)">逆さオチ（立場逆転）</button>
+      <button class="sage-btn" onclick="selSage('とたんオチ',this)">とたんオチ（一言で切る）</button>
+      <button class="sage-btn" onclick="selSage('しぐさオチ',this)">しぐさオチ（動きで落とす）</button>
+      <button class="sage-btn" onclick="selSage('まわりオチ',this)">まわりオチ（冒頭に戻る）</button>
+    </div>
+  </div>
+  <div class="setup-sec"><div class="sec-label">🖊️ 語り口</div>
+    <div class="style-grid">
+      <button class="style-btn sel" onclick="selStyle('江戸前',this)">江戸前（べらんめえ・小気味よく）</button>
+      <button class="style-btn" onclick="selStyle('上方',this)">上方（はんなり・賑やか）</button>
+      <button class="style-btn" onclick="selStyle('現代口語',this)">現代口語（新作風）</button>
+    </div>
+  </div>
+  <button class="setup-next" id="setupNext" onclick="goToInterview()" disabled>次へ → 立作者の聞き取りを受ける</button>
+</div>
+
+<!-- P2: INTERVIEW -->
+<div id="p2" class="screen">
+  <div class="iv-msgs" id="ivMsgs"></div>
+  <div class="iv-prog-wrap">
+    <div class="iv-prog-bar"><div class="iv-prog-fill" id="ivProg" style="width:0%"></div></div>
+    <div class="iv-prog-txt" id="ivProgTxt">聞き取り 0/8</div>
+  </div>
+  <div class="next-phase-wrap" id="nextPhaseWrap">
+    <button class="next-phase-btn" style="background:linear-gradient(135deg,var(--coord-l),var(--coord));" onclick="startCoord()">📜 立作者AIへ → 噺の構成を組む</button>
+  </div>
+  <div class="iv-inp-wrap" id="ivInpWrap">
+    <div class="iv-inp-bar">
+      <textarea class="iv-ta" id="ivTa" rows="1" placeholder="自由に話してください..." oninput="rszTA(this)" onkeydown="ivKey(event)"></textarea>
+      <button class="iv-send" id="ivSend" onclick="ivSendFn()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- P3: COORDINATE -->
+<div id="p3" class="screen">
+  <div class="phase-wrap">
+    <div class="phase-hd"><span class="phase-hd-ico">📜</span><span class="phase-hd-title">立作者AI — 噺の構成</span><span class="ai-badge ab-coord">立作者</span></div>
+    <div id="coordBody"><div class="loading-box"><span class="loading-ico">📜</span><div class="loading-txt">古典落語の名作と照合中...<br>構成の型とサゲを設計しています</div></div></div>
+  </div>
+</div>
+
+<!-- P4: CHARACTERS -->
+<div id="p4" class="screen">
+  <div class="phase-wrap">
+    <div class="phase-hd"><span class="phase-hd-ico">👥</span><span class="phase-hd-title">人物帳AI — 登場人物と仕込み</span><span class="ai-badge ab-mgr">人物帳</span></div>
+    <div id="mgrBody"><div class="loading-box"><span class="loading-ico">👥</span><div class="loading-txt">人物帳・仕込みリスト作成中...</div></div></div>
+  </div>
+</div>
+
+<!-- P5: WRITING -->
+<div id="p5" class="screen">
+  <div class="writing-scroll">
+    <div class="book-hd-title" id="writingTitle">演目未定</div>
+    <div class="book-hd-sub" id="writingSubTitle">仕立て中...</div>
+    <button class="gen-all-btn" id="genAllBtn" onclick="generateAll()">⚡ 全段を一気に仕立てる（師匠AIのダメ出し付き）</button>
+    <div id="chapList"></div>
+  </div>
+</div>
+
+<!-- P6: 客席批評 -->
+<div id="p6" class="screen">
+  <div class="phase-wrap">
+    <div class="phase-hd"><span class="phase-hd-ico">🍵</span><span class="phase-hd-title">寄席通AI — 一席通し批評</span><span class="ai-badge ab-editor">寄席通</span></div>
+    <div id="editorBody"><div class="loading-box"><span class="loading-ico">🍵</span><div class="loading-txt">一席通して聴いています...<br>客席の笑い曲線を集計中</div></div></div>
+  </div>
+</div>
+
+<!-- P7: 番組審査 -->
+<div id="p7" class="screen">
+  <div class="phase-wrap">
+    <div class="phase-hd"><span class="phase-hd-ico">🎪</span><span class="phase-hd-title">番組審査 — 三つの席</span><span class="ai-badge" style="background:var(--pubA-bg);color:var(--pubA);border:1px solid var(--pubA-l);">3席</span></div>
+    <div id="publishBody"><div class="loading-box"><span class="loading-ico">🎪</span><div class="loading-txt">三つの席が並列審査中...<br>老舗寄席・テレビ演芸・配信チャンネル</div></div></div>
+  </div>
+</div>
+
+<!-- P8: COMPLETE -->
+<div id="p8" class="screen">
+  <div style="overflow-y:auto;flex:1;align-items:center;text-align:center;padding:20px 16px 30px;background:linear-gradient(180deg,#ffecec,var(--bg));display:flex;flex-direction:column;">
+  <span class="comp-ico">🏆</span>
+  <div class="comp-title">一席、あがりました</div>
+  <div class="comp-sub">世界に一席だけの創作落語<br>14のAIが仕立てた高座台本</div>
+  <div class="book-cover" id="bookCover">
+    <div class="bc-genre" id="cvGenre"></div>
+    <div class="bc-title" id="cvTitle"></div>
+    <div class="bc-line"></div>
+    <div class="bc-auth">14AI寄席</div>
+  </div>
+  <div class="act-btns">
+    <button class="act-btn act-copy" onclick="copyWork()">📋 口演台本をコピー</button>
+    <button class="act-btn act-restart" onclick="restartAll()">✦ もう一席こしらえる</button>
+  </div>
+  <div class="works-sec"><div class="ws-label">📚 ネタ帳</div><div id="worksList8"></div></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════
+// RAKUGO WRITER AI — 14AI寄席・全ロジック内包
+// NOVEL WRITER AI と同一アーキテクチャ（askAI関数 + Firestore）
+// ══════════════════════════════════════════════
+
+var FUNC_BASE=(location.hostname==='localhost'||location.hostname==='127.0.0.1')
+  ?'http://localhost:5001/kensetsu-nippo-842a2/us-central1'
+  :'https://us-central1-kensetsu-nippo-842a2.cloudfunctions.net';
+var ACCESS_KEY='HeartsHouse2026Key';
+
+// ── 名作構成テンプレート（古典落語の骨格） ──
+var KATAS={
+  '時そば型':[
+    {tag:'マクラ',t:'マクラ',turn:'題材にちなむ小噺で客を温める'},
+    {tag:'発端',t:'手本の場',turn:'器用な者の鮮やかな手口を見せる'},
+    {tag:'本題',t:'感心と決意',turn:'見ていた主人公が「俺もやろう」と決める'},
+    {tag:'本題',t:'見様見真似',turn:'うろ覚えの仕込み・期待だけが膨らむ'},
+    {tag:'山場',t:'実演の段',turn:'真似が一つずつズレて笑いが重なる'},
+    {tag:'サゲ',t:'サゲ',turn:'決定的な失敗が一言で割れて落ちる'}
+  ],
+  'まんじゅうこわい型':[
+    {tag:'マクラ',t:'マクラ',turn:'「怖いもの」にちなむ小噺'},
+    {tag:'発端',t:'寄り合いの場',turn:'皆が本音・自慢・弱みを言い合う'},
+    {tag:'本題',t:'嘘の告白',turn:'主人公が偽りの弱点を打ち明ける'},
+    {tag:'本題',t:'企みの段',turn:'周りがいたずら心で仕掛けを始める'},
+    {tag:'山場',t:'責めの段',turn:'仕掛けが本人の思う壺と判明していく'},
+    {tag:'サゲ',t:'サゲ',turn:'「本当に怖いのは——」ともう一枚上手で落ちる'}
+  ],
+  '芝浜型':[
+    {tag:'マクラ',t:'マクラ',turn:'夫婦・酒・商いにちなむ小噺'},
+    {tag:'発端',t:'堕落の段',turn:'主人公のだらしなさと周囲の苦労を描く'},
+    {tag:'本題',t:'拾得の段',turn:'思わぬ幸運（事件）が転がり込む'},
+    {tag:'本題',t:'夢の段',turn:'「あれは夢だ」——嘘が主人公を変える'},
+    {tag:'山場',t:'歳月の段',turn:'年月が流れ、努力が実を結ぶ'},
+    {tag:'サゲ',t:'告白とサゲ',turn:'真実の告白、涙のあとに軽く一言で落とす'}
+  ],
+  '寿限無型':[
+    {tag:'マクラ',t:'マクラ',turn:'名前・言葉にちなむ小噺'},
+    {tag:'発端',t:'由来の段',turn:'長い言葉・決まり文句が生まれる経緯'},
+    {tag:'本題',t:'反復の段・一',turn:'決まり文句のせいで日常が渋滞する'},
+    {tag:'本題',t:'反復の段・二',turn:'繰り返しがエスカレートして雪だるま式に'},
+    {tag:'山場',t:'大渋滞の段',turn:'一番急ぐ場面で決まり文句が最大の障害に'},
+    {tag:'サゲ',t:'サゲ',turn:'繰り返しの果てに時間切れ・本末転倒で落ちる'}
+  ],
+  '死神型':[
+    {tag:'マクラ',t:'マクラ',turn:'運・不思議・欲にちなむ小噺'},
+    {tag:'発端',t:'出会いの段',turn:'追い詰められた主人公が不思議な力を得る'},
+    {tag:'本題',t:'成功の段',turn:'力を使って面白いように上手くいく'},
+    {tag:'本題',t:'慢心の段',turn:'調子に乗って「やってはいけないこと」に手を出す'},
+    {tag:'山場',t:'代償の段',turn:'禁を破った報いが迫る'},
+    {tag:'サゲ',t:'サゲ',turn:'ゾッとする余韻か、紙一重の滑稽さで落ちる'}
+  ],
+  '目黒のさんま型':[
+    {tag:'マクラ',t:'マクラ',turn:'食べ物・身分違いにちなむ小噺'},
+    {tag:'発端',t:'別世界の段',turn:'主人公の浮世離れした日常を描く'},
+    {tag:'本題',t:'遭遇の段',turn:'ひょんなことから「本物」を体験して感動する'},
+    {tag:'本題',t:'執着の段',turn:'忘れられずもう一度と願う'},
+    {tag:'山場',t:'再会の段',turn:'形式や気遣いが本物を台無しにする'},
+    {tag:'サゲ',t:'サゲ',turn:'「やっぱり◯◯に限る」——ズレたまま自信満々に落ちる'}
+  ],
+  '自由構成':[
+    {tag:'マクラ',t:'マクラ',turn:'小噺で客を温める'},
+    {tag:'発端',t:'発端',turn:'噺が動き出す'},
+    {tag:'本題',t:'展開',turn:'掛け合いで膨らませる'},
+    {tag:'山場',t:'山場',turn:'笑いの最高潮'},
+    {tag:'サゲ',t:'サゲ',turn:'一言で落とす'}
+  ]
+};
+
+// ── 語り口の指示 ──
+var STYLE_NOTES={
+  '江戸前':'江戸前の語り。べらんめえ調で歯切れよく、テンポ重視。「〜じゃねえか」「おう、◯◯さんかい」',
+  '上方':'上方落語の語り。はんなり賑やかに、見台を叩くようなリズムで。「〜でんな」「〜しまっせ」「あほやなあ」',
+  '現代口語':'現代口語の新作落語。今の言葉で、あるある感とテンポで笑わせる。固有名詞は架空のものに。'
+};
+
+// ── 聞き取り質問（8問・4層）──
+var IVQ=[
+  {l:'舞台',q:'この噺の舞台はいつ・どこですか？江戸の長屋でも、現代のコンビニでも構いません。'},
+  {l:'主人公',q:'主人公はどんな人物ですか？そそっかしい、ケチ、見栄っ張り——落語では「欠点」こそ愛嬌です。'},
+  {l:'主人公',q:'主人公と掛け合う相手は誰ですか？ご隠居、おかみさん、店の主人など、ツッコミ役を教えてください。'},
+  {l:'筋',q:'噺の発端は何ですか？主人公が思いついた企み、あるいは巻き込まれた困りごとを教えてください。'},
+  {l:'笑い',q:'一番笑わせたい場面のイメージはありますか？どんな失敗・勘違い・やり取りで笑わせたいですか。'},
+  {l:'笑い',q:'繰り返すほど可笑しくなりそうな言葉・行動はありますか？（落語は繰り返しの芸です）'},
+  {l:'サゲ',q:'最後の一言「サゲ」のイメージはありますか？（なければ「お任せ」で結構です）'},
+  {l:'演目',q:'最後に——この噺に演目名をつけるとしたら？（仮でも結構です）'}
+];
+
+// ── State ──
+var cu=null,busy=false;
+var genre='',struct='',style='江戸前',sage='お任せ';
+var ivStep=0,ivData={},ivHist=[];
+var synopsis={},chars=[],foreshadows=[],outline=[];
+var chapTexts={},dirReviews={},editorResult=null,judgeResult=null;
+var asstState={prevSummaries:{},charStatus:{},foreshadowStatus:{}};
+var subEditorScores={},readerResults={},publishResults={};
+var bookId=null,bookTitle='';
+
+// ── API ──
+async function callAI(prompt,search){
+  var body={prompt,model:'gemini-2.5-flash',mode:'normal',useSearch:!!search};
+  var r=await fetch(FUNC_BASE+'/askAI',{method:'POST',headers:{'Content-Type':'application/json','x-access-key':ACCESS_KEY},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error('API '+r.status);
+  var d=await r.json();
+  return d?.data?.text||d?.data?.candidates?.[0]?.content?.parts?.[0]?.text||d?.candidates?.[0]?.content?.parts?.[0]?.text||d?.text||'応答なし';
+}
+async function callJSON(prompt,search){
+  var raw=await callAI(prompt,search);
+  try{ return JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+  catch(e){ return null; }
+}
+
+// ══════ 14AI SYSTEM PROMPTS ══════
+
+var SYS_COORD=`あなたは寄席の立作者（たてさくしゃ）AIです。噺家に台本を書き下ろす座付作者として、
+ユーザーの聞き取りを分析し、古典落語の名作と照合して新作落語の構成を設計します。
+落語の構成は「マクラ（小噺）→本題（掛け合いの段）→サゲ（オチ）」。仕込み（サゲの布石）を必ず序盤に置きます。
+JSONのみで返答してください：
+{"title":"演目名（かな交じり8字以内・古典風）","theme":"この噺の眼目を一文","refWorks":[{"title":"古典演目名","reason":"構成の類似点20字"},{"title":"古典演目名","reason":"構成の類似点20字"},{"title":"古典演目名","reason":"構成の類似点20字"}],"synopsis":"筋書き200字","sage":"サゲの一言（案）——噺の最後を締める台詞そのもの","chapters":[{"title":"段の見出し","turn":"この段の狙い20字"}]}`;
+
+var SYS_MGR=`あなたは寄席の人物帳AIです。落語の登場人物は「類型の芸」——八っつぁん熊さん、ご隠居、与太郎、おかみさん、若旦那。
+筋書きから登場人物帳と仕込みリスト（サゲ・クスグリの布石）を作成します。人数は2〜4人、口調の描き分けを最重視。
+JSONのみで返答：
+{"characters":[{"name":"名前","role":"役どころ（ボケ/ツッコミ/巻き込まれ役など）","age":"歳格好","appearance":"見た目","personality":"気性","wound":"欠点（＝愛嬌）","desire":"欲・望み","flaw":"口癖","speech":"口調（上下の演じ分けの目安）","dialogSample":"「セリフ例3文」"}],"foreshadows":[{"chapter":"第N段","plant":"仕込み内容（サゲやクスグリの布石）","payoff":"効く段"}]}`;
+
+var SYS_DIR=`あなたは落語の師匠AIです。八代目桂文楽の緻密、五代目古今亭志ん生の自在、その両方の目で稽古をつけます。
+「間」「テンポ」「クスグリの効き」「人物の演じ分け」「サゲへの運び」を審査し、容赦なくダメ出しします。
+説明台詞・地の文の長さ・同じ調子の繰り返し過多は減点。サゲが割れている（途中でオチが読める）のは大減点。
+JSONのみで返答：
+{"verdict":"ok|revise|rewrite","score":0-10,"comment":"江戸っ子口調の講評","instructions":"直しの指示（rewriteの場合は具体的に）"}`;
+
+var SYS_WRITER=`あなたは真打の噺家AIです。高座にかける口演台本を書くことだけに専念してください。
+書き方の決まり：
+・会話が七割、地の語りは三割まで。地の語りは講釈風に軽く「〜んですな」「〜てえと」。
+・人物の切り替えは台詞の頭の呼びかけや口調でわかるように（上下の演じ分けを文字で）。
+・ト書きは【仕草：〜】【間】の形で最小限に入れる。
+・各段にクスグリ（小さな笑い）を二つ以上仕込む。説明で笑わせず、掛け合いで笑わせる。`;
+
+var SYS_ASST=`あなたは寄席の前座AIです。師匠の高座を袖で全部覚えるのが仕事。感情ではなく事実確認に徹します。
+人物の呼び名・口調のブレ、道具や金額の食い違い、仕込みの張り忘れ・回収漏れを具体的に指摘します。
+JSONのみで返答：
+{"checkList":[{"item":"確認項目","status":"ok|warn|error","note":"具体的なメモ"}],"prevSummary":"前段サマリー200字","charStatus":{"人物名":"現在の状況・持ち物"},"foreshadowStatus":{"仕込み名":"planted|collected|pending"},"toDirector":"師匠への報告30字"}`;
+
+var SYS_SUB=`あなたは客席のお客AIです。今この段を高座で聴いた一人の客として、笑いを正直に数値化します。
+JSONのみで返答：
+{"ch":0,"title":"段の見出し","emotionCurve":{"opening":0-10,"rising":0-10,"peak":0-10,"landing":0-10},"pageturner":0-10,"readerEmotion":"この段を聴いた時の正直な反応50字（クスッ/ウケた/爆笑/冷めた等）","cliffhanger":"次の段への引き・期待を一文","warning":"客が冷めそうな箇所があれば"}`;
+
+var SYS_JUDGE=`あなたは落語の賞レース審査員AIです。古典と新作、両方の目で審査します。
+古典の目：型の確かさ・語りの品・人物の可笑しみ・江戸（上方）の空気・サゲの切れ味
+新作の目：発想の新しさ・現代性・爆発力・「この噺は今やる意味があるか」
+両方の視点で評価し、最終判定を出してください。
+JSONのみで返答：
+{"kotenScore":0-100,"kotenComment":"古典の目からの評価200字","shinsakuScore":0-100,"shinsakuComment":"新作の目からの評価200字","overallJudge":"真打級|二ツ目級|前座級","judgeFinalWord":"審査員総評300字","toImprove":["直すべき点1","直すべき点2","直すべき点3"]}`;
+
+var SYS_EDITOR=`あなたは寄席通AIです。週に三度は寄席に通って四十年、一席を通しで聴いて批評します。
+段ごとの笑い曲線データと台本を読み、「高座にかけて客が沸くか」を評価してください。
+JSONのみで返答：
+{"chapterScores":[{"ch":1,"title":"段の見出し","interest":0-10,"emotion":0-10,"surprise":0-10,"tension":0-10,"overall":0-10,"weak":"弱い点一言"}],"finalVerdict":"publishOk|needsRevision","overallScore":0-10,"readerReview":"客として聴いた正直な感想200字","editorComment":"寄席通として——構成・間・サゲの技術的講評200字","topImprovements":["改善点1","改善点2","改善点3"]}`;
+
+// ══════ 前座AI ══════
+async function runAsst(chapIdx,text){
+  var c=outline[chapIdx];
+  var prevSum=asstState.prevSummaries[chapIdx-1]||'（最初の段のため前段なし）';
+  var charState=JSON.stringify(asstState.charStatus||{});
+  var fsState=JSON.stringify(asstState.foreshadowStatus||{});
+  var prompt=SYS_ASST+`\n\n第${chapIdx+1}段「${c.title||''}」の整合性チェックをしてください。\n\n前段サマリー：${prevSum}\n人物の現在状況：${charState}\n仕込みの状態：${fsState}\nこの段のテキスト（先頭500字）：\n${text.slice(0,500)}\n\nJSONのみ返答。`;
+  var r=await callJSON(prompt)||{checkList:[],prevSummary:'',charStatus:{},foreshadowStatus:{},toDirector:'チェック完了'};
+  if(r.prevSummary) asstState.prevSummaries[chapIdx]=r.prevSummary;
+  if(r.charStatus) Object.assign(asstState.charStatus,r.charStatus);
+  if(r.foreshadowStatus) Object.assign(asstState.foreshadowStatus,r.foreshadowStatus);
+  return r;
+}
+
+// ══════ お客AI（笑い曲線） ══════
+async function runSubEditor(chapIdx,text){
+  var c=outline[chapIdx];
+  var prompt=SYS_SUB+`\n\n第${chapIdx+1}段「${c.title||''}」を高座で聴いてください。\n噺のジャンル：${genre}\nテキスト：\n${text}\n\nJSONのみ返答。`;
+  var r=await callJSON(prompt)||{ch:chapIdx+1,title:c.title,emotionCurve:{opening:5,rising:5,peak:5,landing:5},pageturner:5,readerEmotion:'クスッとしました',cliffhanger:'続きが気になります',warning:''};
+  subEditorScores[chapIdx]=r;
+  return r;
+}
+
+// ══════ 賞レース審査員AI ══════
+async function runJudge(){
+  var fullSummary=outline.map(function(c,i){
+    var sc=subEditorScores[i];
+    return '第'+(i+1)+'段「'+c.title+'」\n笑い曲線：'+(sc?JSON.stringify(sc.emotionCurve):'')+'\n客の反応：'+(sc?sc.readerEmotion:'')+'\nテキスト（先頭300字）：\n'+(chapTexts[i]||'').slice(0,300);
+  }).join('\n\n');
+  var prompt=SYS_JUDGE+`\n\n演目：${bookTitle}\nジャンル：${genre}\n構成の型：${struct}\nサゲの型：${sage}\n語り口：${style}\nサゲ（予定）：${synopsis.sage||''}\n\n各段サマリー：\n${fullSummary}\n\nJSONのみ返答。`;
+  return await callJSON(prompt)||{kotenScore:60,kotenComment:'型は踏まえています。語りにもう少し品が欲しい。',shinsakuScore:65,shinsakuComment:'発想は面白い。爆発力をもう一段。',overallJudge:'二ツ目級',judgeFinalWord:'見どころのある一席です。クスグリの精度とサゲの切れ味を磨けば真打級に届くでしょう。',toImprove:['クスグリの数を増やす','中盤のテンポを上げる','サゲの直前に間を作る']};
+}
+
+// ══════ 3人の客AI システムプロンプト ══════
+
+var SYS_READER_GOINKYO=`あなたは72歳のご隠居AIです。寄席通い五十年、志ん朝と小さんをナマで聴いた耳の持ち主。
+「型の確かさ」「語りの品」「人物の可笑しみ」に敏感で、あざとい笑いには渋い顔をします。
+いい啖呵・いい間に出会うと膝を打つ。一般のお客として正直な感想を口語で話してください。
+JSONのみで返答：
+{"readerName":"寄席通いのご隠居","favoriteChapter":0,"favoriteQuote":"膝を打った台詞（テキストから引用）","emotionPeak":"一番沸いた瞬間","boring":"正直だれたところ","afterglow":"聴き終えたあとの心持ち","wouldReadAgain":true,"personalReview":"口語の感想200字","weakestPoint":"一番弱いと思ったところ","wishList":"こうしてほしかった運び"}`;
+
+var SYS_READER_WAKAMONO=`あなたは21歳の大学生AIです。お笑い好きで漫才やコントはよく観るが、寄席は今日が初めて。
+予備知識ゼロでも「単純に笑えるか」「テンポがいいか」「今の感覚に刺さるか」で正直に判定します。
+古い言葉がわからなければわからないと言う。面白ければ素直に笑う。
+JSONのみで返答：
+{"readerName":"初めて寄席に来た大学生","laughScore":0-10,"bestLaugh":"一番笑ったところ","hardToFollow":["わかりにくかった言葉・場面"],"tempoScore":0-10,"snsShare":"友達に勧めるなら何と言うか一文","personalReview":"口語の感想200字","verdict":"また聴きたい|まあまあ|正直微妙"}`;
+
+var SYS_READER_HYORONKA=`あなたは55歳の演芸評論家AIです。落語評論を三十年、サゲの型の分類と古典との系譜に詳しい。
+「サゲの型の完成度」「古典との距離の取り方」「演者を選ばない台本か」を専門的に評価します。
+ただし高座は理屈じゃないことも知っている。感心すれば素直に褒める。
+JSONのみで返答：
+{"readerName":"演芸評論家","sageType":"この噺のサゲの型の分類","sageScore":0-10,"lineage":"古典のどの系譜に連なるか","originality":"この台本ならではの新味","structureNote":"構成上の指摘","personalReview":"批評200字","verdict":"出色|水準作|習作"}`;
+
+// ジャンル別の客席起動判定
+function getActiveReaders(){
+  var readers=['goinkyo']; // ご隠居は常連なので常時
+  if(genre==='新作・現代落語'||genre==='滑稽噺'||genre==='与太郎噺') readers.push('wakamono');
+  if(genre==='人情噺'||genre==='怪談噺'||genre==='長屋噺') readers.push('hyoronka');
+  return readers;
+}
+
+// ══════ 3客AI実行 ══════
+function chapSummaryText(){
+  return outline.map(function(c,i){
+    return '第'+(i+1)+'段「'+c.title+'」\n'+(chapTexts[i]||'未執筆').slice(0,500);
+  }).join('\n\n');
+}
+async function runReaderGoinkyo(){
+  var prompt=SYS_READER_GOINKYO+'\n\n演目：'+bookTitle+'\nジャンル：'+genre+'\n\n全段テキスト：\n'+chapSummaryText()+'\n\nJSONのみ返答。';
+  var r=await callJSON(prompt)||{readerName:'寄席通いのご隠居',favoriteChapter:1,favoriteQuote:'',emotionPeak:'',boring:'',afterglow:'',wouldReadAgain:true,personalReview:'悪くない高座でしたよ。',weakestPoint:'',wishList:''};
+  readerResults.goinkyo=r;
+  return r;
+}
+async function runReaderWakamono(){
+  var prompt=SYS_READER_WAKAMONO+'\n\n演目：'+bookTitle+'\nジャンル：'+genre+'\n\n全段テキスト：\n'+chapSummaryText()+'\n\nJSONのみ返答。';
+  var r=await callJSON(prompt)||{readerName:'初めて寄席に来た大学生',laughScore:6,bestLaugh:'',hardToFollow:[],tempoScore:6,snsShare:'落語って意外と面白いよ',personalReview:'普通に笑えました。',verdict:'まあまあ'};
+  readerResults.wakamono=r;
+  return r;
+}
+async function runReaderHyoronka(){
+  var prompt=SYS_READER_HYORONKA+'\n\n演目：'+bookTitle+'\nジャンル：'+genre+'\nサゲの型（指定）：'+sage+'\n\n全段テキスト：\n'+chapSummaryText()+'\n\nJSONのみ返答。';
+  var r=await callJSON(prompt)||{readerName:'演芸評論家',sageType:'考えオチ',sageScore:6,lineage:'',originality:'',structureNote:'',personalReview:'水準は満たしています。',verdict:'水準作'};
+  readerResults.hyoronka=r;
+  return r;
+}
+
+// ══════ 客席会議（師匠AIが仕切る）══════
+async function runReaderConference(){
+  var activeReaders=getActiveReaders();
+  var voiceLines=[];
+  if(readerResults.goinkyo){
+    var rg=readerResults.goinkyo;
+    voiceLines.push('【寄席通いのご隠居】'+rg.personalReview+' 弱いところ：'+(rg.weakestPoint||''));
+  }
+  if(readerResults.wakamono&&activeReaders.includes('wakamono')){
+    var rw=readerResults.wakamono;
+    voiceLines.push('【初めての大学生】'+rw.personalReview+' わかりにくい：'+(rw.hardToFollow||[]).join('、'));
+  }
+  if(readerResults.hyoronka&&activeReaders.includes('hyoronka')){
+    var rh=readerResults.hyoronka;
+    voiceLines.push('【演芸評論家】'+rh.personalReview+' 構成の指摘：'+(rh.structureNote||''));
+  }
+  var prompt=SYS_DIR+'\n\n以下の客席の声を踏まえ、最終的な直しの指示を噺家AIに出してください。\n\n'+voiceLines.join('\n\n')+'\n\n客の声を統合し、最も優先すべき直し3点を具体的に指示してください。\nJSONで返答：{"finalInstructions":["直し1","直し2","直し3"],"conferenceSummary":"客席会議のまとめ200字","priorityChapter":1}';
+  return await callJSON(prompt)||{finalInstructions:['クスグリの精度を上げる','中盤のテンポを締める','サゲの前に間を作る'],conferenceSummary:'客それぞれの耳で聴きどころと直しどころがはっきりしました。',priorityChapter:1};
+}
+
+// ══════ 立作者AI ══════
+async function runCoord(){
+  var ivSum=ivHist.map(function(h,i){ return 'Q'+(i+1)+'('+h.l+'): '+h.q+'\n→ '+h.a; }).join('\n\n');
+  var base=KATAS[struct]||KATAS['自由構成'];
+  var chapList=base.map(function(c,i){return '第'+(i+1)+'段「'+c.t+'」('+c.tag+'：'+c.turn+')';}).join('、');
+  var sageNote=sage==='お任せ'?'サゲの型は最も効果的なものを選んでください':'サゲの型は「'+sage+'」で設計してください';
+  var prompt=SYS_COORD+`\n\n噺のジャンル：${genre}\n構成の型：${struct}\n段構成：${chapList}\n${sageNote}\n語り口：${style}\n\n聞き取り：\n${ivSum}\n\nJSONのみ返答。`;
+  var r=await callJSON(prompt,true);
+  if(!r) r={title:ivData['A8']||'無題の噺',theme:'笑いの中の人情',refWorks:[{title:'照合中',reason:''}],synopsis:'筋書き生成中',sage:'',chapters:base.map(function(c){return {title:c.t,turn:c.turn};})};
+  return r;
+}
+
+// ══════ 師匠AI（構成の稽古）══════
+async function runDirReviewSynopsis(coordResult){
+  var prompt=SYS_DIR+`\n\n以下の噺の構成に稽古をつけてください。\n演目：${coordResult.title}\nジャンル：${genre}\n筋書き：${coordResult.synopsis}\nサゲ（案）：${coordResult.sage||''}\n\n「この構成で客が沸くか」「サゲが割れていないか」を判定。JSONのみ返答。`;
+  return await callJSON(prompt)||{verdict:'ok',score:7,comment:'構成は悪くねえ。',instructions:''};
+}
+
+// ══════ 人物帳AI ══════
+async function runMgr(coordResult){
+  var prompt=SYS_MGR+`\n\n演目：${coordResult.title}\n眼目：${coordResult.theme}\n筋書き：${coordResult.synopsis}\nサゲ（案）：${coordResult.sage||''}\nジャンル：${genre}\n主人公の人柄：${ivData['A2']||''}\n掛け合いの相手：${ivData['A3']||''}\n\nJSONのみ返答。`;
+  var r=await callJSON(prompt)||{characters:[{name:'八五郎',role:'主人公（ボケ）',age:'三十がらみ',appearance:'',personality:ivData['A2']||'そそっかしい',wound:'早合点',desire:ivData['A4']||'',flaw:'',speech:'べらんめえ調',dialogSample:''}],foreshadows:[]};
+  return r;
+}
+
+// ══════ 師匠AI（人物の稽古）══════
+async function runDirReviewChars(mgrResult){
+  var charSum=mgrResult.characters.map(function(c){return c.name+'('+c.role+'): '+c.personality+'、欠点:'+c.wound;}).join('\n');
+  var prompt=SYS_DIR+`\n\n以下の人物帳に稽古をつけてください。\n${charSum}\n\n「口調の描き分けで客に伝わるか」「欠点が愛嬌になっているか」を判定。JSONのみ返答。`;
+  return await callJSON(prompt)||{verdict:'ok',score:7,comment:'人物は立ってらあ。',instructions:''};
+}
+
+// ══════ 寄席通AI ══════
+async function runEditor(){
+  var fullText=outline.map(function(c,i){return '【第'+(i+1)+'段「'+c.title+'」】\n'+(chapTexts[i]||'未執筆');}).join('\n\n');
+  var prompt=SYS_EDITOR+`\n\n演目：${bookTitle}\nジャンル：${genre}\n構成の型：${struct}\n\n全文：\n${fullText.slice(0,3000)}\n\nJSONのみ返答。`;
+  return await callJSON(prompt)||{chapterScores:[],finalVerdict:'needsRevision',overallScore:6,readerReview:'ところどころでちゃんと笑いましたよ。',editorComment:'各段をさらに磨けば高座にかけられます。',topImprovements:['クスグリを増やす','仕込みの回収を明確に','サゲの切れ味を上げる']};
+}
+
+// ══════ PHASE NAVIGATION ══════
+function goP(n){
+  for(var i=0;i<=8;i++){
+    var el=document.getElementById('p'+i);
+    if(el) el.classList.remove('show');
+    var ps=document.getElementById('ps'+i);
+    if(ps){ ps.classList.remove('active','done'); if(i===n) ps.classList.add('active'); else if(i<n) ps.classList.add('done'); }
+  }
+  var target=document.getElementById('p'+n);
+  if(target) target.classList.add('show');
+}
+
+// ══════ AUTH ══════
+function initAuth(){
+  if(!window.__fw){ window.addEventListener('fbReady',initAuth,{once:true}); return; }
+  window.__fw.onAuthStateChanged(window.__fw.auth,function(user){
+    if(user){ cu=user; document.getElementById('loginScreen').classList.remove('active'); document.getElementById('appHd').style.display='flex'; document.getElementById('phaseBar').style.display='block'; }
+    else { document.getElementById('loginScreen').classList.add('active'); document.getElementById('appHd').style.display='none'; document.getElementById('phaseBar').style.display='none'; }
+  });
+  document.getElementById('dPass').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+}
+document.addEventListener('DOMContentLoaded',initAuth);
+async function doLogin(){
+  var email=document.getElementById('dEmail').value.trim(),pass=document.getElementById('dPass').value,err=document.getElementById('dErr'); err.textContent='';
+  if(!email||!pass){err.textContent='メールとパスワードを入力してください';return;}
+  try{ await window.__fw.signInWithEmailAndPassword(window.__fw.auth,email,pass); document.getElementById('loginScreen').classList.remove('active'); }
+  catch(e){ var m={'auth/user-not-found':'登録されていません','auth/wrong-password':'パスワードが違います','auth/invalid-credential':'メールまたはパスワードが間違っています'}; err.textContent=m[e.code]||'ログインに失敗しました'; }
+}
+async function doLogout(){ if(!confirm('退出しますか？'))return; await window.__fw.signOut(window.__fw.auth); document.getElementById('loginScreen').classList.add('active'); }
+
+// ══════ PHASE 1: SETUP ══════
+function selGenre(g,btn){ genre=g; document.querySelectorAll('.genre-btn').forEach(function(b){b.classList.remove('sel');}); btn.classList.add('sel'); chkSetup(); }
+function selStruct(s,btn){ struct=s; document.querySelectorAll('.struct-btn').forEach(function(b){b.classList.remove('sel');}); btn.classList.add('sel'); chkSetup(); }
+function selSage(s,btn){ sage=s; document.querySelectorAll('.sage-btn').forEach(function(b){b.classList.remove('sel');}); btn.classList.add('sel'); }
+function selStyle(s,btn){ style=s; document.querySelectorAll('.style-btn').forEach(function(b){b.classList.remove('sel');}); btn.classList.add('sel'); }
+function chkSetup(){ document.getElementById('setupNext').disabled=!(genre&&struct); }
+
+function goToInterview(){
+  ivStep=0; ivData={}; ivHist=[]; bookId='rakugo_'+Date.now();
+  goP(2);
+  document.getElementById('ivMsgs').innerHTML='';
+  document.getElementById('nextPhaseWrap').style.display='none';
+  document.getElementById('ivInpWrap').style.display='block';
+  document.getElementById('ivProg').style.width='0%';
+  document.getElementById('ivProgTxt').textContent='聞き取り 0/8';
+  setTimeout(function(){
+    appendIv('ai','ええ、毎度ばかばかしいお笑いを——寄席の立作者AIでございます。\n\nジャンル：<strong>'+genre+'</strong>、構成：<strong>'+struct+'</strong>、サゲ：<strong>'+sage+'</strong>で仕立てます。\n\nこれから8つ伺います。頭ん中にあるものを、気楽に話してください。\n\nでは始めましょう。');
+    setTimeout(function(){askIvQ(0);},800);
+  },300);
+}
+
+// ══════ PHASE 2: INTERVIEW ══════
+function askIvQ(idx){
+  if(idx>=IVQ.length) return;
+  ivStep=idx;
+  document.getElementById('ivProg').style.width=(idx/IVQ.length*100)+'%';
+  document.getElementById('ivProgTxt').textContent='聞き取り '+idx+'/8';
+  var labels=['一つ目','二つ目','三つ目','四つ目','五つ目','六つ目','七つ目','八つ目・仕舞い'];
+  setTimeout(function(){appendIv('ai','【'+labels[idx]+'·'+IVQ[idx].l+'】 '+IVQ[idx].q);},400);
+}
+async function ivSendFn(){
+  var ta=document.getElementById('ivTa'),text=ta.value.trim();
+  if(!text||busy) return;
+  ta.value=''; ta.style.height='';
+  appendIv('user',text);
+  ivData['A'+(ivStep+1)]=text; ivData['Q'+(ivStep+1)]=IVQ[ivStep].q;
+  ivHist.push({l:IVQ[ivStep].l,q:IVQ[ivStep].q,a:text});
+  var next=ivStep+1;
+  if(next<IVQ.length){
+    busy=true; document.getElementById('ivSend').disabled=true;
+    var typEl=appendIvTyping();
+    try{
+      var comment=await callAI('寄席の立作者AIです。新作落語の聞き取り中。相手の回答「'+text+'」に対し、噺の作り手の観点から20〜30字の軽妙な受けコメントを。');
+      typEl.remove(); appendIv('ai',comment); setTimeout(function(){askIvQ(next);},600);
+    }catch(e){ typEl.remove(); askIvQ(next); }
+    busy=false; document.getElementById('ivSend').disabled=false;
+  } else {
+    document.getElementById('ivProg').style.width='100%';
+    document.getElementById('ivProgTxt').textContent='聞き取り完了 ✅';
+    busy=true; document.getElementById('ivSend').disabled=true;
+    var typEl2=appendIvTyping();
+    try{
+      var fin=await callAI('寄席の立作者AIです。新作落語の聞き取り完了。「では'+genre+'を'+struct+'の骨格で仕立てます」という趣旨の締めを100字以内で。噺の主人公の可笑しみを一言添えて。');
+      typEl2.remove(); appendIv('ai',fin);
+    }catch(e){ appendIv('ai','聞き取り完了。構成に取りかかります。'); }
+    busy=false; document.getElementById('ivSend').disabled=false;
+    document.getElementById('ivInpWrap').style.display='none';
+    document.getElementById('nextPhaseWrap').style.display='block';
+  }
+}
+
+// ══════ PHASE 3: 立作者 ══════
+async function startCoord(){
+  goP(3);
+  document.getElementById('coordBody').innerHTML='<div class="loading-box"><span class="loading-ico">📜</span><div class="loading-txt">古典落語の名作と照合中...<br>構成とサゲを設計しています</div></div>';
+  try{
+    var coord=await runCoord();
+    synopsis=coord;
+    bookTitle=coord.title||'無題の噺';
+    var base=KATAS[struct]||KATAS['自由構成'];
+    outline=(coord.chapters||[]).map(function(c,i){ var b=base[i]||{}; return {title:c.title||b.t,turn:c.turn||b.turn,tag:b.tag||''}; });
+    var dirSynopsis=await runDirReviewSynopsis(coord);
+    renderCoordResult(coord,dirSynopsis);
+  }catch(e){
+    document.getElementById('coordBody').innerHTML='<div style="color:#c03020;text-align:center;padding:20px;">エラー: '+e.message+'<br><button onclick="startCoord()" style="margin-top:10px;padding:8px 16px;background:var(--coord-l);color:#fff;border:none;border-radius:6px;cursor:pointer;">再試行</button></div>';
+  }
+}
+
+function renderCoordResult(r,dir){
+  var html='<div class="sec-label-blk">🔍 骨格を借りた古典の名作</div>';
+  (r.refWorks||[]).forEach(function(w){ html+='<div class="ref-item"><div class="ref-title">📜 '+w.title+'</div><div class="ref-why">'+w.reason+'</div></div>'; });
+  html+='<div class="synopsis-box" style="margin-top:12px;"><div class="syn-label">📝 筋書き</div><div class="syn-title">'+r.title+'</div><div class="syn-text">'+r.synopsis+'</div></div>';
+  if(r.sage) html+='<div class="sage-box"><div class="sage-label">🎯 サゲ（案）— '+sage+'</div><div class="sage-text">'+r.sage+'</div></div>';
+  html+='<div class="sec-label-blk" style="margin-top:12px;">📋 段構成（マクラ→本題→サゲ）</div>';
+  outline.forEach(function(c,i){ html+='<div class="chap-outline-item"><div class="co-num">'+String(i+1).padStart(2,'0')+'</div><div><div class="co-title">'+c.title+'</div><div class="co-turn">'+(c.tag?'['+c.tag+'] ':'')+c.turn+'</div></div></div>'; });
+  html+=renderDirBox(dir,'🎯 師匠AI — 構成の稽古');
+  html+='<button class="approve-btn" style="background:linear-gradient(135deg,var(--mgr-l),var(--mgr));" onclick="startMgr()">✅ この構成で進む → 人物帳AIへ</button>';
+  document.getElementById('coordBody').innerHTML=html;
+}
+
+// ══════ PHASE 4: 人物帳 ══════
+async function startMgr(){
+  goP(4);
+  document.getElementById('mgrBody').innerHTML='<div class="loading-box"><span class="loading-ico">👥</span><div class="loading-txt">人物帳・仕込みリスト作成中...</div></div>';
+  try{
+    var mgr=await runMgr(synopsis);
+    chars=mgr.characters||[];
+    foreshadows=mgr.foreshadows||[];
+    var dirChars=await runDirReviewChars(mgr);
+    renderMgrResult(mgr,dirChars);
+  }catch(e){
+    document.getElementById('mgrBody').innerHTML='<div style="color:#c03020;text-align:center;padding:20px;">エラー: '+e.message+'<br><button onclick="startMgr()" style="margin-top:10px;padding:8px 16px;background:var(--mgr-l);color:#fff;border:none;border-radius:6px;cursor:pointer;">再試行</button></div>';
+  }
+}
+
+function renderMgrResult(r,dir){
+  var html='';
+  (r.characters||[]).forEach(function(ch){
+    html+='<div class="char-card"><div class="char-hd"><div class="char-av">👤</div><div><div class="char-name">'+ch.name+'</div><div class="char-role">'+ch.role+'</div></div></div>';
+    html+='<div class="char-grid">';
+    var fields=[['歳格好',ch.age],['見た目',ch.appearance],['気性',ch.personality],['欠点（愛嬌）',ch.wound],['欲・望み',ch.desire],['口癖',ch.flaw],['口調・上下',ch.speech]];
+    fields.forEach(function(f){ html+='<div class="cf"><div class="cf-label">'+f[0]+'</div><div class="cf-val">'+(f[1]||'—')+'</div></div>'; });
+    html+='</div>';
+    if(ch.dialogSample) html+='<div style="margin-top:8px;background:var(--bg2);border-radius:6px;padding:7px 9px;font-size:11px;color:var(--text2);">💬 セリフ例：'+ch.dialogSample+'</div>';
+    html+='</div>';
+  });
+  if((r.foreshadows||[]).length>0){
+    html+='<div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.15em;color:var(--mgr);margin:12px 0 6px;text-transform:uppercase;">🧵 仕込みリスト（サゲ・クスグリの布石）</div>';
+    r.foreshadows.forEach(function(f){ html+='<div class="fs-item"><div style="font-size:14px;">🎣</div><div><strong>'+f.chapter+'</strong>：'+f.plant+'<br><span style="color:var(--writer)">→ '+f.payoff+'で効く</span></div></div>'; });
+  }
+  html+=renderDirBox(dir,'🎯 師匠AI — 人物の稽古');
+  html+='<button class="to-next-btn" style="background:linear-gradient(135deg,var(--writer-l),var(--writer));" onclick="startWriting()">✍️ 台本を書き始める → 噺家AIへ</button>';
+  document.getElementById('mgrBody').innerHTML=html;
+}
+
+// ══════ PHASE 5: WRITING ══════
+function startWriting(){
+  document.getElementById('writingTitle').textContent=bookTitle;
+  document.getElementById('writingSubTitle').textContent=genre+' · '+struct+' · 全'+outline.length+'段';
+  buildChapList();
+  goP(5);
+}
+
+function buildChapList(){
+  var el=document.getElementById('chapList');
+  el.innerHTML=outline.map(function(c,i){
+    return '<div class="chap-card" id="chap-'+i+'"><div class="chap-hd" onclick="toggleChap('+i+')"><div class="chap-num">'+String(i+1).padStart(2,'0')+'</div><div class="chap-info"><div class="chap-tag">'+(c.tag||'')+'</div><div class="chap-ttl">'+c.title+'</div></div><div class="chap-stat" id="cs-'+i+'">⬜</div></div><div class="chap-body" id="cb-'+i+'"><div class="brief-box" id="bf-'+i+'" style="display:none;"><div class="brief-label">👥 人物帳AIの割り</div><div class="brief-txt" id="bft-'+i+'"></div></div><div class="dir-chap-review" id="dr-'+i+'" style="display:none;"><div class="dir-chap-label">🎯 師匠の稽古</div><div id="drt-'+i+'"></div></div><div class="chap-text" id="ct-'+i+'" style="color:var(--muted);font-size:12px;">まだ書かれていません</div><button class="gen-btn" id="gb-'+i+'" onclick="genChap('+i+')">✍️ 第'+(i+1)+'段を書く</button></div></div>';
+  }).join('');
+}
+
+function toggleChap(i){ document.getElementById('cb-'+i).classList.toggle('show'); }
+
+async function generateAll(){
+  var btn=document.getElementById('genAllBtn');
+  btn.disabled=true; btn.textContent='⌛ 全段仕立て中... 師匠AIが各段に稽古をつけます';
+  for(var i=0;i<outline.length;i++){
+    document.getElementById('cb-'+i).classList.add('show');
+    await genChap(i);
+    await new Promise(function(r){setTimeout(r,500);});
+  }
+  btn.style.display='none';
+  setTimeout(function(){startEditor();},800);
+}
+
+async function genChap(i){
+  var ct=document.getElementById('ct-'+i),gb=document.getElementById('gb-'+i),cs=document.getElementById('cs-'+i);
+  var bf=document.getElementById('bf-'+i),bft=document.getElementById('bft-'+i);
+  var dr=document.getElementById('dr-'+i),drt=document.getElementById('drt-'+i);
+  if(gb) gb.disabled=true; cs.textContent='⌛';
+  var isLast=(i===outline.length-1);
+
+  ct.innerHTML='<span class="generating">👥 人物帳AIが割りを作成中...</span>';
+  try{
+    // Step1: 前座AIの前段サマリー（最初の段以外）
+    var prevSummary=i>0?(asstState.prevSummaries[i-1]||(chapTexts[i-1]?chapTexts[i-1].slice(-300):'')):'';
+
+    // Step2: 人物帳AIの割り（ブリーフィング）
+    var c=outline[i];
+    var charSum=chars.map(function(ch){return ch.name+'('+ch.role+'):口調「'+ch.speech+'」現在:'+(asstState.charStatus[ch.name]||'不明');}).join('、');
+    var payoffs=foreshadows.filter(function(f){return f.payoff==='第'+(i+1)+'段';}).map(function(f){return f.plant;}).join('、')||'なし';
+    var fsState=Object.entries(asstState.foreshadowStatus).filter(function(e){return e[1]!=='collected';}).map(function(e){return e[0]+'('+e[1]+')';}).join('、')||'なし';
+    var briefPrompt='あなたは寄席の人物帳AIです。\n第'+(i+1)+'段「'+c.title+'」（'+(c.tag||'')+'）の執筆前の割りを作成してください。\n\n人物の現在状況：'+charSum+'\nこの段で効かせる仕込み：'+payoffs+'\nまだ効いていない仕込み：'+fsState+'\nこの段の狙い：'+(c.turn||'')+'\n前段サマリー：'+prevSummary+(isLast?'\n\n※この段はサゲの段。サゲ「'+(synopsis.sage||'')+'」へ運ぶ道筋を必ず入れること。':'')+'\n\n噺家が迷わず書けるよう、必ず描くべきことを箇条書き3点で150字以内。';
+    var briefing=await callAI(briefPrompt);
+    bft.textContent=briefing; bf.style.display='block';
+
+    ct.innerHTML='<span class="generating">✍️ 噺家AIが高座台本を執筆中...</span>';
+
+    // Step3: 噺家AI執筆
+    var charSheet=chars.map(function(ch){return ch.name+'('+ch.role+'): '+ch.personality+'、口調:'+ch.speech+'\nセリフ例:'+(ch.dialogSample||'');}).join('\n');
+    var fsPlant=foreshadows.filter(function(f){return f.chapter==='第'+(i+1)+'段';}).map(function(f){return '【仕込み】'+f.plant+'（'+f.payoff+'で効く）';}).join('\n')||'なし';
+    var dirNote=dirReviews[i]&&dirReviews[i].instructions?'\n\n【師匠からの直しの指示】\n'+dirReviews[i].instructions:'';
+    var sageNote=isLast?'\n\n【最重要】この段はサゲの段。必ずサゲ「'+(synopsis.sage||'')+'」（またはそれを磨いた一言）で締めること。サゲの直前に【間】を一拍置くこと。サゲの後に余計な文を続けないこと。':'';
+    var writerPrompt=SYS_WRITER+'\n\n作品情報：演目「'+bookTitle+'」ジャンル「'+genre+'」眼目「'+(synopsis.theme||'')+'」\n語り口：'+(STYLE_NOTES[style]||style)+'\n\n人物帳：\n'+charSheet+'\n\n人物帳AIの割り：\n'+briefing+dirNote+'\n\nこの段で張る仕込み：\n'+fsPlant+sageNote+'\n\n前段サマリー（語りの調子を継続）：\n'+prevSummary+'\n\n第'+(i+1)+'段「'+c.title+'」（'+(c.tag||'')+'）を今すぐ執筆。この段の狙い：'+(c.turn||'')+'\n文字数：500〜900字\n段の見出しを最初に書き、口演台本を続けてください。';
+    var text=await callAI(writerPrompt);
+    chapTexts[i]=text; ct.textContent=text; cs.textContent='🔍';
+
+    // Step4: 前座AIが整合性チェック＆状態更新
+    ct.innerHTML+='\n<div style="margin-top:5px;color:var(--asst);font-family:Space Mono,monospace;font-size:10px;animation:pulse 1.5s infinite;">🧹 前座AIが整合性チェック中...</div>';
+    var asstResult=await runAsst(i,text);
+    var warnItems=(asstResult.checkList||[]).filter(function(cl){return cl.status!=='ok';});
+    if(warnItems.length>0){
+      var warnHtml='<div style="margin-top:6px;background:var(--asst-bg);border:1px solid var(--asst-l);border-radius:5px;padding:7px 10px;"><div style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.12em;color:var(--asst);margin-bottom:4px;">🧹 前座チェック</div>';
+      warnItems.forEach(function(cl){ warnHtml+='<div style="font-size:11px;color:var(--text2);margin-bottom:3px;">'+(cl.status==='error'?'❌':'⚠')+' '+cl.item+'：'+cl.note+'</div>'; });
+      warnHtml+='</div>';
+      bft.innerHTML+=warnHtml;
+    }
+
+    // Step5: お客AIが笑い曲線を記録
+    ct.innerHTML=text+'\n<div style="margin-top:5px;color:var(--sub);font-family:Space Mono,monospace;font-size:10px;animation:pulse 1.5s infinite;">👏 お客AIが笑いを記録中...</div>';
+    var subResult=await runSubEditor(i,text);
+    ct.textContent=text;
+    if(subResult){
+      var subHtml='<div style="margin-top:8px;background:var(--sub-bg);border:1px solid var(--sub-l);border-radius:6px;padding:8px 11px;">';
+      subHtml+='<div style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.12em;color:var(--sub);margin-bottom:5px;">👏 お客AI — 笑い曲線</div>';
+      var ec=subResult.emotionCurve||{};
+      var ecItems=[['出だし',ec.opening],['くすぐり',ec.rising],['山場',ec.peak],['着地',ec.landing]];
+      ecItems.forEach(function(e){ subHtml+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="font-size:9px;color:var(--muted);min-width:48px;">'+e[0]+'</span><div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;"><div style="height:100%;width:'+(e[1]||0)*10+'%;background:var(--sub-l);border-radius:3px;"></div></div><span style="font-size:10px;color:var(--sub);">'+(e[1]||0)+'</span></div>'; });
+      subHtml+='<div style="font-size:11px;color:var(--text2);margin-top:5px;">💭 '+subResult.readerEmotion+'</div>';
+      if(subResult.warning) subHtml+='<div style="font-size:11px;color:var(--dir);margin-top:3px;">⚠ '+subResult.warning+'</div>';
+      subHtml+='</div>';
+      document.getElementById('cb-'+i).innerHTML+=subHtml;
+    }
+
+    // Step6: 師匠AIの稽古（品質審査）
+    ct.innerHTML=text+'\n';
+    drt&&(drt.innerHTML='');
+    dr&&(dr.style.display='none');
+    ct.innerHTML+='<div style="margin-top:5px;color:var(--dir);font-family:Space Mono,monospace;font-size:10px;animation:pulse 1.5s infinite;">🎯 師匠AIが稽古をつけています...</div>';
+    var dirResult=await runDirReviewChap(i,text);
+    dirReviews[i]=dirResult;
+    if(dirResult.verdict==='rewrite'){
+      ct.innerHTML='<span class="generating">🔄 師匠の指示で書き直し中...</span>';
+      writerPrompt+='\n\n【師匠からの直しの指示】\n'+dirResult.instructions;
+      text=await callAI(writerPrompt);
+      chapTexts[i]=text;
+    }
+    ct.textContent=text;
+    if(drt&&dr){
+      drt.innerHTML='<span class="dir-verdict '+dirResult.verdict+'" style="display:inline-block;font-family:Space Mono,monospace;font-size:9px;padding:3px 8px;border-radius:6px;margin-bottom:5px;">'+({'ok':'✅ 上々','revise':'⚠ 直し','rewrite':'🔄 書き直し'}[dirResult.verdict]||'✅')+' '+dirResult.score+'/10</span> <span style="font-size:11px;color:var(--text2);">'+dirResult.comment+'</span>';
+      dr.style.display='block';
+    }
+    cs.textContent='✅';
+    if(gb) gb.style.display='none';
+    await saveChap(i,text);
+    if(Object.keys(chapTexts).length===outline.length) setTimeout(function(){startEditor();},800);
+  }catch(e){
+    ct.textContent='⚠ エラー: '+e.message; cs.textContent='❌';
+    if(gb){ gb.disabled=false; gb.textContent='🔄 書き直す'; }
+  }
+}
+
+// ══════ 師匠AI（段の稽古）══════
+async function runDirReviewChap(chapIdx,text){
+  var c=outline[chapIdx];
+  var isLast=(chapIdx===outline.length-1);
+  var sageCheck=isLast?'\n\n※この段はサゲの段。「サゲが立っているか（明瞭に落ちているか）」「サゲが途中で割れていないか」「サゲの直前に間があるか」を特に厳しく審査すること。':'';
+  var prompt=SYS_DIR+`\n\n第${chapIdx+1}段「${c.title}」に稽古をつけてください。\nジャンル：${genre}、眼目：${synopsis.theme||''}、サゲ（予定）：${synopsis.sage||''}${sageCheck}\n\n本文：\n${text.slice(0,800)}\n\n品質判定をJSONで。`;
+  return await callJSON(prompt)||{verdict:'ok',score:7,comment:'まあ、上々だ。',instructions:''};
+}
+
+// ══════ PHASE 6: 客席批評 ══════
+async function startEditor(){
+  goP(6);
+  document.getElementById('editorBody').innerHTML='<div class="loading-box"><span class="loading-ico">🍵</span><div class="loading-txt">寄席通AIが一席通して聴いています...<br>笑い曲線データを分析中</div></div>';
+  try{
+    var scoreData=Object.keys(subEditorScores).map(function(idx){
+      var sc=subEditorScores[idx];
+      return '第'+(parseInt(idx)+1)+'段「'+(sc.title||'')+'」笑い:'+JSON.stringify(sc.emotionCurve||{})+' 引き:'+sc.pageturner+' 反応:'+sc.readerEmotion;
+    }).join('\n');
+    var chapSummaries=outline.map(function(c,i){
+      return '第'+(i+1)+'段「'+c.title+'」\n'+(chapTexts[i]||'未執筆').slice(0,600);
+    }).join('\n\n');
+    var editorPrompt=SYS_EDITOR+'\n\n演目：'+bookTitle+'\nジャンル：'+genre+'\n構成の型：'+struct+'\n\n【笑い曲線データ】\n'+scoreData+'\n\n【各段テキスト冒頭】\n'+chapSummaries+'\n\nJSONのみ返答。';
+    var result=await callJSON(editorPrompt)||{chapterScores:[],finalVerdict:'needsRevision',overallScore:6,readerReview:'ちゃんと笑いましたよ。',editorComment:'磨けば高座にかけられます。',topImprovements:['クスグリを増やす','仕込みの回収を明確に','サゲの切れ味を上げる']};
+    editorResult=result;
+    document.getElementById('editorBody').innerHTML='<div style="color:var(--akuta);font-family:Space Mono,monospace;font-size:10px;text-align:center;padding:8px;animation:pulse 1.5s infinite;">🏆 賞レース審査員AIが審査中...</div>';
+    var judge=await runJudge();
+    judgeResult=judge;
+    // 3人の客AI（ジャンル連動・並列実行）
+    var activeReaders=getActiveReaders();
+    document.getElementById('editorBody').innerHTML='<div style="color:var(--rbun);font-family:Space Mono,monospace;font-size:10px;text-align:center;padding:8px;animation:pulse 1.5s infinite;">👥 客席のみなさんが聴いています...</div>';
+    var readerArr=await Promise.all([
+      runReaderGoinkyo(),
+      activeReaders.includes('wakamono')?runReaderWakamono():Promise.resolve(null),
+      activeReaders.includes('hyoronka')?runReaderHyoronka():Promise.resolve(null)
+    ]);
+    // 客席会議（師匠AIが仕切る）
+    document.getElementById('editorBody').innerHTML='<div style="color:var(--dir);font-family:Space Mono,monospace;font-size:10px;text-align:center;padding:8px;animation:pulse 1.5s infinite;">🎯 師匠AIが客席会議を仕切っています...</div>';
+    var conference=await runReaderConference();
+    renderEditorResult(result,judge,readerArr,conference,activeReaders);
+    await saveComplete();
+  }catch(e){
+    document.getElementById('editorBody').innerHTML='<div style="color:#c03020;text-align:center;padding:20px;">エラー: '+e.message+'<br><button onclick="startEditor()" style="margin-top:10px;padding:8px 16px;background:var(--editor-l);color:#fff;border:none;border-radius:6px;cursor:pointer;">再試行</button></div>';
+  }
+}
+
+function renderEditorResult(r,judge,readerArr,conference,activeReaders){
+  readerArr=readerArr||[]; activeReaders=activeReaders||['goinkyo'];
+  var html='<div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.2em;color:var(--editor);margin-bottom:8px;text-transform:uppercase;">📊 段別スコアカード</div>';
+  html+='<div class="score-grid">';
+  (r.chapterScores||[]).forEach(function(sc){
+    var bars=[['引き込み',sc.interest,'var(--coord-l)'],['可笑しみ',sc.emotion,'var(--mgr-l)'],['意外性',sc.surprise,'var(--dir-l)'],['テンポ',sc.tension,'var(--writer-l)']];
+    html+='<div class="score-item"><div class="sc-chap">第'+sc.ch+'段</div><div class="sc-title">'+(sc.title||'')+'</div><div class="sc-bars">';
+    bars.forEach(function(b){ html+='<div class="sc-bar-row"><div class="sc-bar-label">'+b[0]+'</div><div class="sc-bar"><div class="sc-bar-fill" style="width:'+(b[1]||0)*10+'%;background:'+b[2]+';"></div></div></div>'; });
+    html+='</div><div class="sc-overall">'+(sc.overall||0)+'<span style="font-size:11px;color:var(--muted);">/10</span></div>';
+    if(sc.weak) html+='<div class="sc-weak">💡 '+sc.weak+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  html+='<div class="editor-final"><div class="ef-label">🍵 寄席通AI — 一席通しの評価</div>';
+  var verdictColor=r.finalVerdict==='publishOk'?'#1a6a2a':'var(--dir)';
+  html+='<div class="ef-verdict" style="color:'+verdictColor+';">'+(r.finalVerdict==='publishOk'?'✅ 高座にかけられる':'⚠ もうひと稽古')+' — 総合 '+(r.overallScore||0)+'/10</div>';
+  html+='<div class="ef-review">👏 客として：'+r.readerReview+'</div>';
+  html+='<div class="ef-review" style="margin-top:7px;">🍵 寄席通として：'+r.editorComment+'</div>';
+  if((r.topImprovements||[]).length>0){
+    html+='<div class="ef-improve"><div class="ef-improve-label">直しどころ</div>';
+    r.topImprovements.forEach(function(t){ html+='<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.5;">• '+t+'</div>'; });
+    html+='</div>';
+  }
+  html+='</div>';
+  // ── 3人の客の生の声 ──
+  var readerDefs=[
+    {key:'goinkyo',ico:'🍶',color:'var(--rbun)',bg:'var(--rbun-bg)',border:'var(--rbun-l)',label:'寄席通いのご隠居'},
+    {key:'wakamono',ico:'🎒',color:'var(--rsf)',bg:'var(--rsf-bg)',border:'var(--rsf-l)',label:'初めて寄席に来た大学生'},
+    {key:'hyoronka',ico:'🖋️',color:'var(--rjid)',bg:'var(--rjid-bg)',border:'var(--rjid-l)',label:'演芸評論家'}
+  ];
+  var readerDataMap={goinkyo:readerArr[0],wakamono:readerArr[1],hyoronka:readerArr[2]};
+  html+='<div style="margin-top:12px;font-family:Space Mono,monospace;font-size:9px;letter-spacing:.15em;color:var(--rbun);margin-bottom:8px;text-transform:uppercase;">👥 客席の生の声</div>';
+  readerDefs.forEach(function(rd){
+    var rdata=readerDataMap[rd.key];
+    if(!rdata) return;
+    if(!activeReaders.includes(rd.key)&&rd.key!=='goinkyo') return;
+    html+='<div style="background:'+rd.bg+';border:1px solid '+rd.border+';border-radius:10px;padding:13px;margin-bottom:8px;">';
+    html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;"><span style="font-size:20px;">'+rd.ico+'</span><span style="font-family:Space Mono,monospace;font-size:9px;color:'+rd.color+';font-weight:700;">'+rd.label+'</span></div>';
+    html+='<div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:7px;">'+rdata.personalReview+'</div>';
+    if(rdata.favoriteQuote) html+='<div style="background:#fff;border-left:3px solid '+rd.border+';border-radius:0 5px 5px 0;padding:7px 10px;font-size:12px;font-style:italic;color:var(--text2);margin-bottom:5px;">💬 「'+rdata.favoriteQuote+'」</div>';
+    if(rdata.bestLaugh) html+='<div style="background:#fff;border-left:3px solid '+rd.border+';border-radius:0 5px 5px 0;padding:7px 10px;font-size:12px;color:var(--text2);margin-bottom:5px;">🤣 一番笑った：'+rdata.bestLaugh+'</div>';
+    if(rdata.weakestPoint) html+='<div style="font-size:11px;color:var(--muted);">⚠ 弱いところ：'+rdata.weakestPoint+'</div>';
+    if(rdata.hardToFollow&&rdata.hardToFollow.length) html+='<div style="font-size:11px;color:var(--rsf);margin-top:3px;">❓ わかりにくい：'+rdata.hardToFollow.join('、')+'</div>';
+    if(rdata.sageType) html+='<div style="font-size:11px;color:var(--rjid);margin-top:3px;">🎯 サゲの型：'+rdata.sageType+'（'+(rdata.sageScore!=null?rdata.sageScore+'/10':'')+'）</div>';
+    if(rdata.snsShare) html+='<div style="font-size:11px;color:var(--rsf);margin-top:3px;">📣 「'+rdata.snsShare+'」</div>';
+    var verdictMap={
+      'また聴きたい':'✅ また聴きたい','まあまあ':'👍 まあまあ','正直微妙':'⚠ 正直微妙',
+      '出色':'✅ 出色','水準作':'👍 水準作','習作':'⚠ 習作'
+    };
+    var vrd=rdata.verdict||(rdata.wouldReadAgain?'また聴きたい':'');
+    if(vrd) html+='<div style="font-size:11px;font-weight:700;color:'+rd.color+';margin-top:5px;">'+(verdictMap[vrd]||vrd)+'</div>';
+    html+='</div>';
+  });
+  // ── 客席会議まとめ ──
+  if(conference){
+    html+='<div style="background:var(--dir-bg);border:2px solid var(--dir-l);border-radius:10px;padding:14px;margin-top:10px;">';
+    html+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;"><span style="font-size:18px;">🎯</span><span style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.12em;color:var(--dir);">師匠AI — 客席会議まとめ</span></div>';
+    html+='<div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:10px;">'+conference.conferenceSummary+'</div>';
+    if(conference.finalInstructions&&conference.finalInstructions.length){
+      html+='<div style="background:#fff;border-radius:7px;padding:10px;"><div style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.12em;color:var(--dir);margin-bottom:5px;">最終の直し指示</div>';
+      conference.finalInstructions.forEach(function(ins){ html+='<div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.5;">🖊 '+ins+'</div>'; });
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  // ── 賞レース審査員AI ──
+  if(judge){
+    var jColor={'真打級':'#1a6a2a','二ツ目級':'var(--dir)','前座級':'#c03020'}[judge.overallJudge]||'var(--text)';
+    html+='<div style="background:linear-gradient(135deg,#fff8f8,#f8fff8);border:2px solid var(--akuta-l);border-radius:12px;padding:14px;margin-top:10px;">';
+    html+='<div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.15em;color:var(--akuta);margin-bottom:10px;text-transform:uppercase;">🏆 賞レース審査員AI — 最終判定</div>';
+    html+='<div style="font-size:16px;font-weight:700;color:'+jColor+';margin-bottom:10px;font-family:Yuji Syuku,serif;">'+judge.overallJudge+'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">';
+    html+='<div style="background:#fff;border-radius:7px;padding:9px;border:1px solid var(--akuta-l);"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--akuta);margin-bottom:5px;">古典の目（型・語り）</div><div style="font-size:22px;font-weight:700;color:var(--akuta);text-align:center;">'+judge.kotenScore+'<span style="font-size:11px;">/100</span></div><div style="font-size:10px;color:var(--text2);margin-top:5px;line-height:1.6;">'+judge.kotenComment+'</div></div>';
+    html+='<div style="background:#fff;border-radius:7px;padding:9px;border:1px solid var(--naoki-l);"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--naoki);margin-bottom:5px;">新作の目（発想・爆発力）</div><div style="font-size:22px;font-weight:700;color:var(--naoki);text-align:center;">'+judge.shinsakuScore+'<span style="font-size:11px;">/100</span></div><div style="font-size:10px;color:var(--text2);margin-top:5px;line-height:1.6;">'+judge.shinsakuComment+'</div></div>';
+    html+='</div>';
+    html+='<div style="background:#fff;border-radius:7px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.8;">'+judge.judgeFinalWord+'</div>';
+    if(judge.toImprove){
+      var improvements=Array.isArray(judge.toImprove)?judge.toImprove:[judge.toImprove];
+      html+='<div style="background:rgba(138,26,26,.06);border-radius:6px;padding:9px;"><div style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.12em;color:var(--akuta);margin-bottom:5px;">真打になるために</div>';
+      improvements.forEach(function(t){ html+='<div style="font-size:11px;color:var(--text2);margin-bottom:3px;line-height:1.5;">🖊 '+t+'</div>'; });
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  html+='<button class="to-next-btn" style="background:linear-gradient(135deg,var(--pubA-l),#2a1a5a);" onclick="goPublish()">🎪 番組審査へ → 三つの席が審査します</button>';
+  document.getElementById('editorBody').innerHTML=html;
+}
+
+// ══════ 3つの席AI システムプロンプト ══════
+
+var SYS_PUB_A=`あなたは老舗寄席の席亭AIです。都内の定席を三代守ってきた70歳。
+「寄席の高座にかけられるか」だけが物差し。トリが取れる噺か、浅い出番向きか、客層は昼席か夜席か。
+派手さより「何度聴いても飽きない」を重んじる。「うちの高座は客が育ててきたんだ」が口癖。
+JSONのみで返答：
+{"publisherName":"老舗寄席の席亭","firstImpression":"聴いた瞬間の直感50字","kozaScore":0-100,"banGumi":"番組のどの出番向きか（トリ/仲入り前/浅い出番）","kyakusou":"合う客層","hyakunen":"五十年後も掛けられる噺か","decision":"定席で採用|直しの上採用|惜しい|お断り","condition":"採用条件（あれば）","editorComment":"席亭として200字","developmentNote":"この作者をどう育てるか50字","obsCritique":"最も気になった欠点"}`;
+
+var SYS_PUB_B=`あなたはテレビ演芸番組のプロデューサーAIです。地上波の演芸番組を20年作ってきた45歳。
+「10分尺に収まるか」「茶の間の初見客が笑えるか」「賞レースで映えるか」が判断軸。
+カットしやすい構成、つかみの早さ、サゲのわかりやすさを重視。
+JSONのみで返答：
+{"publisherName":"テレビ演芸プロデューサー","targetViewer":"想定視聴者層","ochanomaScore":0-100,"cutPlan":"10分尺に縮めるならどこを切るか","shoRace":"賞レース向きか","catchCopy":"番組告知コピー30字以内","decision":"即オンエア|条件付き|保留|見送り","editorComment":"プロデューサーとして200字","hoseiPlan":"放送用の直し50字","awardIdea":"狙える賞・企画"}`;
+
+var SYS_PUB_C=`あなたは演芸配信チャンネルの運営AIです。落語をYouTubeとポッドキャストで配信する28歳。
+「サムネと最初の30秒で離脱されないか」「切り抜きが作れるか」「Z世代に刺さるタグが付くか」が判断軸。
+古典の敷居を下げるのが使命。「落語は最強の一人コントっすよ」が口癖。
+JSONのみで返答：
+{"publisherName":"演芸配信チャンネル","buzzScore":0-100,"firstHook":"最初の30秒のつかみの強さ","kirinuki":"切り抜きにできる場面","hashTags":["#タグ1","#タグ2","#タグ3"],"xIntro":"X告知文140字","thumbnail":"サムネ案一言","decision":"即配信|直して配信|切り抜きのみ|見送り","editorComment":"配信者として200字","webPlan":"配信プラン50字","buzzStrategy":"バズ戦略"}`;
+
+// ══════ 3席AI実行 ══════
+function pubChapSummary(){
+  var perChap=Math.max(200,Math.floor(3000/Math.max(outline.length,1)));
+  return outline.map(function(c,i){
+    return '第'+(i+1)+'段「'+c.title+'」('+(c.tag||'')+')\n'+(chapTexts[i]||'').slice(0,perChap);
+  }).join('\n\n');
+}
+async function runPubA(){
+  var judgeNote='';
+  if(judgeResult){
+    judgeNote='【賞レース審査員の評価】\n古典の目:'+judgeResult.kotenScore+'/100\n'+judgeResult.kotenComment+'\n新作の目:'+judgeResult.shinsakuScore+'/100\n総合判定:'+judgeResult.overallJudge+'\n総評:'+judgeResult.judgeFinalWord;
+  }
+  var prompt=SYS_PUB_A+'\n\n演目：'+bookTitle+'\nジャンル：'+genre+'\n語り口：'+style
+    +'\n\n'+judgeNote
+    +'\n\n各段テキスト（均等配分）：\n'+pubChapSummary()+'\n\nJSONのみ返答。';
+  var r=await callJSON(prompt)||{
+    publisherName:'老舗寄席の席亭',firstImpression:'見どころのある一席',
+    kozaScore:65,banGumi:'仲入り前',kyakusou:'昼席の常連',hyakunen:'まだわからない',
+    decision:'惜しい',condition:'',editorComment:'直しを重ねれば高座にかけられる。',
+    developmentNote:'じっくり育てたい',obsCritique:'サゲの切れ味が甘い'
+  };
+  publishResults.pubA=r; return r;
+}
+
+async function runPubB(){
+  var readerNote='';
+  if(Object.keys(subEditorScores).length>0){
+    var avgPT=Object.values(subEditorScores).reduce(function(s,sc){ return s+(sc.pageturner||5); },0)/Object.keys(subEditorScores).length;
+    readerNote='【お客AI平均引き込みスコア】'+avgPT.toFixed(1)+'/10';
+  }
+  var prompt=SYS_PUB_B+'\n\n演目：'+bookTitle+'\nジャンル：'+genre
+    +'\n\n'+readerNote
+    +'\n\n各段テキスト（均等配分）：\n'+pubChapSummary()+'\n\nJSONのみ返答。';
+  var r=await callJSON(prompt)||{
+    publisherName:'テレビ演芸プロデューサー',targetViewer:'40〜60代',ochanomaScore:65,
+    cutPlan:'マクラを短く',shoRace:'検討可能',catchCopy:'笑って泣ける新作落語',
+    decision:'条件付き',editorComment:'茶の間向けの間口はある。尺を整えれば放送できる。',
+    hoseiPlan:'つかみを早く',awardIdea:'新人賞の予選向き'
+  };
+  publishResults.pubB=r; return r;
+}
+
+async function runPubC(){
+  var prompt=SYS_PUB_C+'\n\n演目：'+bookTitle+'\nジャンル：'+genre
+    +'\n\n各段テキスト（均等配分）：\n'+pubChapSummary()+'\n\nJSONのみ返答。';
+  var fallbackTags=['#'+genre,'#'+bookTitle.slice(0,8),'#創作落語'];
+  var r=await callJSON(prompt)||{
+    publisherName:'演芸配信チャンネル',buzzScore:60,firstHook:'普通',
+    kirinuki:'山場の掛け合い',hashTags:fallbackTags,
+    xIntro:bookTitle+'——新作落語、一席あがりました。',
+    thumbnail:'主人公の顔芸',decision:'切り抜きのみ',
+    editorComment:'切り抜き向きの場面はある。フルは構成の直しが必要。',
+    webPlan:'切り抜きから育てる',buzzStrategy:'サゲ直前で切って続きを本編へ'
+  };
+  publishResults.pubC=r; return r;
+}
+
+// ══════ 番組編成会議 ══════
+async function runPublishConference(){
+  var pa=publishResults.pubA||{}, pb=publishResults.pubB||{}, pc=publishResults.pubC||{};
+  var voices='【老舗寄席】'+pa.decision+' '+pa.editorComment+'\n\n【テレビ演芸】'+pb.decision+' '+pb.editorComment+'\n\n【配信チャンネル】'+pc.decision+' '+pc.editorComment;
+  var kozaScore=pa.kozaScore||50, tvScore=pb.ochanomaScore||50, buzzScore=pc.buzzScore||50;
+  var prompt='あなたは演芸プロダクションのマネージャーAIです。三つの席の審査結果を統合してください。\n\n'+voices+'\n\n高座映え:'+kozaScore+' 茶の間ウケ:'+tvScore+' バズ性:'+buzzScore+'\n\nJSONのみで返答：{"bestPublisher":"最も適した席（A/B/C）","reason":"その理由50字","overallAdvice":"作者へのアドバイス200字","publicationProbability":"高座に掛かる可能性（高/中/低）","nextStep":"今すぐすべき直し50字"}';
+  return await callJSON(prompt)||{bestPublisher:'A',reason:'じっくり育つ噺',overallAdvice:'直しを重ねて完成度を上げてください。見込みは十分あります。',publicationProbability:'中',nextStep:'サゲの前の間を作る'};
+}
+
+// ══════ PHASE 7: 番組審査 ══════
+async function startPublish(){
+  goP(7);
+  var el=document.getElementById('publishBody');
+  el.innerHTML='<div class="loading-box"><span class="loading-ico">🎪</span><div class="loading-txt">三つの席が並列審査中...<br>老舗寄席・テレビ演芸・配信チャンネル</div></div>';
+  try{
+    var results=await Promise.all([runPubA(),runPubB(),runPubC()]);
+    el.innerHTML='<div style="color:var(--dir);font-family:Space Mono,monospace;font-size:10px;text-align:center;padding:8px;animation:pulse 1.5s infinite;">🤝 番組編成会議を開催中...</div>';
+    var conference=await runPublishConference();
+    renderPublishResult(results,conference);
+    await saveComplete();
+  }catch(e){
+    el.innerHTML='<div style="color:#c03020;text-align:center;padding:20px;">エラー: '+e.message+'<br><button onclick="startPublish()" style="margin-top:10px;padding:8px 16px;background:var(--pubA-l);color:#fff;border:none;border-radius:6px;cursor:pointer;">再試行</button></div>';
+  }
+}
+
+function renderPublishResult(results,conference){
+  var pa=results[0]||{}, pb=results[1]||{}, pc=results[2]||{};
+  var html='';
+
+  var pubDefs=[
+    {data:pa,ico:'🎪',color:'var(--pubA)',bg:'var(--pubA-bg)',border:'var(--pubA-l)',name:'老舗寄席の席亭',scoreKey:'kozaScore',scoreLabel:'高座映え'},
+    {data:pb,ico:'📺',color:'var(--pubB)',bg:'var(--pubB-bg)',border:'var(--pubB-l)',name:'テレビ演芸プロデューサー',scoreKey:'ochanomaScore',scoreLabel:'茶の間ウケ'},
+    {data:pc,ico:'📱',color:'var(--pubC)',bg:'var(--pubC-bg)',border:'var(--pubC-l)',name:'演芸配信チャンネル',scoreKey:'buzzScore',scoreLabel:'バズ性'}
+  ];
+
+  pubDefs.forEach(function(pd){
+    var d=pd.data;
+    var decisionColor={'定席で採用':'#1a6a2a','即オンエア':'#1a6a2a','即配信':'#1a6a2a','直しの上採用':'var(--dir)','条件付き':'var(--dir)','直して配信':'var(--dir)','惜しい':'var(--dir)','保留':'var(--muted)','切り抜きのみ':'var(--muted)','見送り':'#c03020','お断り':'#c03020'}[d.decision]||'var(--text)';
+    html+='<div style="background:'+pd.bg+';border:2px solid '+pd.border+';border-radius:12px;padding:14px;margin-bottom:10px;">';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:22px;">'+pd.ico+'</span><span style="font-family:Space Mono,monospace;font-size:9px;color:'+pd.color+';font-weight:700;letter-spacing:.08em;">'+pd.name+'</span></div>';
+    html+='<div style="font-size:16px;font-weight:700;color:'+decisionColor+';margin-bottom:8px;font-family:Yuji Syuku,serif;">'+d.decision+'</div>';
+    var scoreVal=d[pd.scoreKey]||0;
+    html+='<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-family:Space Mono,monospace;font-size:9px;color:'+pd.color+';margin-bottom:3px;"><span>'+pd.scoreLabel+'</span><span>'+scoreVal+'/100</span></div><div style="height:6px;background:rgba(0,0,0,.1);border-radius:3px;"><div style="height:100%;width:'+scoreVal+'%;background:'+pd.color+';border-radius:3px;transition:width .8s;"></div></div></div>';
+    html+='<div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:8px;">'+d.editorComment+'</div>';
+    if(d.banGumi) html+='<div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px;font-size:12px;color:var(--text2);">🎪 出番：<strong>'+d.banGumi+'</strong>'+(d.kyakusou?'　客層：'+d.kyakusou:'')+'</div>';
+    if(d.catchCopy) html+='<div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px;font-size:13px;color:var(--text2);">📌 告知コピー：<strong>「'+d.catchCopy+'」</strong></div>';
+    if(d.cutPlan) html+='<div style="font-size:11px;color:var(--pubB);margin-bottom:4px;">✂️ 10分尺プラン：'+d.cutPlan+'</div>';
+    if(d.xIntro) html+='<div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px;font-size:12px;color:var(--text2);">𝕏 <em>'+d.xIntro+'</em></div>';
+    if(d.kirinuki) html+='<div style="font-size:11px;color:var(--pubC);margin-bottom:4px;">🎬 切り抜き：'+d.kirinuki+'</div>';
+    if(d.hashTags&&d.hashTags.length) html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">'+d.hashTags.map(function(t){ return '<span style="background:rgba(0,0,0,.07);border-radius:10px;padding:2px 8px;font-size:10px;color:var(--muted);">'+t+'</span>'; }).join('')+'</div>';
+    if(d.condition) html+='<div style="font-size:11px;color:var(--dir);margin-top:4px;">📝 条件：'+d.condition+'</div>';
+    if(d.awardIdea) html+='<div style="font-size:11px;color:var(--pubB);margin-top:4px;">🏆 狙える賞：'+d.awardIdea+'</div>';
+    if(d.developmentNote) html+='<div style="font-size:11px;color:var(--pubA);margin-top:4px;">🌱 育成方針：'+d.developmentNote+'</div>';
+    html+='</div>';
+  });
+
+  // 高座可能性マップ
+  var kozaV=pa.kozaScore||50, tvV=pb.ochanomaScore||50, bzV=pc.buzzScore||50;
+  html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);">';
+  html+='<div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.15em;color:var(--gold);margin-bottom:10px;text-transform:uppercase;">📊 高座可能性マップ</div>';
+  [['🎪 高座映え（老舗寄席）',kozaV,'var(--pubA)'],['📺 茶の間ウケ（テレビ）',tvV,'var(--pubB)'],['📱 バズ性（配信）',bzV,'var(--pubC)']].forEach(function(item){
+    html+='<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:3px;"><span>'+item[0]+'</span><span style="font-weight:700;color:'+item[2]+';">'+item[1]+'/100</span></div><div style="height:8px;background:var(--bg3);border-radius:4px;"><div style="height:100%;width:'+item[1]+'%;background:'+item[2]+';border-radius:4px;transition:width .8s;"></div></div></div>';
+  });
+  html+='</div>';
+
+  // 編成会議まとめ
+  if(conference){
+    var probColor={'高':'#1a6a2a','中':'var(--dir)','低':'#c03020'}[conference.publicationProbability]||'var(--text)';
+    var pubNames={'A':'老舗寄席','B':'テレビ演芸','C':'配信チャンネル'};
+    html+='<div style="background:linear-gradient(135deg,#f8f8ff,#f0f8ff);border:2px solid var(--coord-l);border-radius:12px;padding:14px;margin-bottom:10px;">';
+    html+='<div style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.15em;color:var(--coord);margin-bottom:10px;text-transform:uppercase;">🤝 番組編成会議 — プロダクションAI</div>';
+    html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">';
+    html+='<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;">最適の席：<span style="color:var(--coord-l);">'+(pubNames[conference.bestPublisher]||conference.bestPublisher)+'</span></div><div style="font-size:11px;color:var(--muted);">'+conference.reason+'</div></div>';
+    html+='<div style="text-align:center;"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--muted);margin-bottom:3px;">高座に掛かる可能性</div><div style="font-size:18px;font-weight:700;color:'+probColor+';">'+conference.publicationProbability+'</div></div>';
+    html+='</div>';
+    html+='<div style="background:#fff;border-radius:7px;padding:10px;margin-bottom:8px;font-size:13px;color:var(--text2);line-height:1.8;">'+conference.overallAdvice+'</div>';
+    html+='<div style="background:rgba(26,74,122,.08);border-radius:6px;padding:9px;"><div style="font-family:Space Mono,monospace;font-size:8px;letter-spacing:.12em;color:var(--coord);margin-bottom:4px;">今すぐすべき直し</div><div style="font-size:13px;font-weight:700;color:var(--coord);">→ '+conference.nextStep+'</div></div>';
+    html+='</div>';
+  }
+
+  html+='<button class="to-next-btn" style="background:linear-gradient(135deg,var(--gold-acc),#9a7020);" onclick="goComplete()">🏆 一席あがり！ → めくりへ</button>';
+  document.getElementById('publishBody').innerHTML=html;
+}
+
+function goPublish(){ startPublish(); }
+
+function goComplete(){
+  document.getElementById('cvGenre').textContent=genre+' · '+struct;
+  document.getElementById('cvTitle').textContent=bookTitle;
+  goP(8);
+  loadWorksInto('worksList8');
+}
+
+function renderDirBox(dir,label){
+  if(!dir) return '';
+  var vclass={'ok':'ok','revise':'revise','rewrite':'rewrite'}[dir.verdict]||'ok';
+  var vlabel={'ok':'✅ 上々','revise':'⚠ 直し','rewrite':'🔄 書き直し'}[dir.verdict]||'✅';
+  var html='<div class="dir-review"><div class="dir-hd"><span style="font-size:18px;">🎯</span><span style="font-family:Space Mono,monospace;font-size:9px;letter-spacing:.12em;color:var(--dir);">'+label+'</span><span class="dir-verdict '+vclass+'">'+vlabel+' ('+dir.score+'/10)</span></div>';
+  html+='<div class="dir-comment">'+dir.comment+'</div>';
+  if(dir.instructions){ html+='<div class="dir-instructions"><div class="di-label">直しの指示</div><div class="di-text">'+dir.instructions+'</div></div>'; }
+  html+='</div>';
+  return html;
+}
+
+// ══════ FIRESTORE ══════
+async function saveChap(i,text){
+  if(!cu||!bookId) return;
+  try{ var{db,doc,setDoc,serverTimestamp}=window.__fw; await setDoc(doc(db,'rakugo_works/'+cu.uid+'/works/'+bookId),{title:bookTitle,genre,struct,sage,chapters:chapTexts,updatedAt:serverTimestamp()},{merge:true}); }catch(e){}
+}
+async function saveComplete(){
+  if(!cu||!bookId) return;
+  try{
+    var{db,doc,setDoc,serverTimestamp}=window.__fw;
+    await setDoc(doc(db,'rakugo_works/'+cu.uid+'/works/'+bookId),{
+      title:bookTitle,genre,struct,style,sage,
+      synopsis,characters:chars,foreshadows,chapOutline:outline,
+      chapters:chapTexts,
+      editorResult:editorResult||null,
+      judgeResult:judgeResult||null,
+      publishResults:publishResults||null,
+      createdAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    },{merge:true});
+  }catch(e){}
+}
+async function loadWorksInto(elId){
+  var el=document.getElementById(elId); if(!cu||!el) return;
+  try{
+    var{db,collection,getDocs,orderBy,query}=window.__fw;
+    var snap=await getDocs(query(collection(db,'rakugo_works/'+cu.uid+'/works'),orderBy('createdAt','desc')));
+    if(snap.empty){el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">まだネタがありません</div>';return;}
+    var html='';
+    snap.forEach(function(d){ var w=d.data(); var chaps=Object.keys(w.chapters||{}).length; var date=w.createdAt?.toDate?w.createdAt.toDate().toLocaleDateString('ja-JP'):''; html+='<div class="work-item" onclick="openWork(\''+d.id+'\')"><div class="wi-ico">🏮</div><div><div class="wi-title">'+(w.title||'無題')+'</div><div class="wi-meta">'+(w.genre||'')+' · '+(w.struct||'')+' · '+chaps+'段 · '+date+'</div></div><div class="wi-go">▶</div></div>'; });
+    el.innerHTML=html;
+  }catch(e){ el.innerHTML='<div style="color:#c03020;font-size:12px;text-align:center;padding:12px;">エラー</div>'; }
+}
+async function openWork(wid){
+  if(!cu) return;
+  var{db,doc,getDoc}=window.__fw;
+  try{
+    var snap=await getDoc(doc(db,'rakugo_works/'+cu.uid+'/works/'+wid));
+    if(!snap.exists()) return;
+    var w=snap.data();
+    bookId=wid; bookTitle=w.title||'無題'; genre=w.genre||''; struct=w.struct||''; style=w.style||'江戸前'; sage=w.sage||'お任せ';
+    synopsis=w.synopsis||{}; chars=w.characters||[]; foreshadows=w.foreshadows||[];
+    outline=w.chapOutline||(KATAS[struct]||KATAS['自由構成']).map(function(c){return{title:c.t,turn:c.turn,tag:c.tag};});
+    chapTexts=w.chapters||{};
+    document.getElementById('writingTitle').textContent=bookTitle;
+    document.getElementById('writingSubTitle').textContent=genre+' · '+struct;
+    buildChapList();
+    Object.entries(chapTexts).forEach(function(e){ var i=e[0],text=e[1]; var ct=document.getElementById('ct-'+i),cs=document.getElementById('cs-'+i),gb=document.getElementById('gb-'+i); if(ct) ct.textContent=text; if(cs) cs.textContent='✅'; if(gb) gb.style.display='none'; });
+    goP(5);
+  }catch(e){ alert('読み込みエラー: '+e.message); }
+}
+function copyWork(){
+  var text='演目 『'+bookTitle+'』\n'+genre+' · '+struct+' · '+style+'\n';
+  if(synopsis&&synopsis.sage) text+='サゲ：'+synopsis.sage+'\n';
+  text+='\n──── 口演台本 ────\n\n';
+  outline.forEach(function(c,i){ text+='◆ 第'+(i+1)+'段「'+c.title+'」'+(c.tag?'（'+c.tag+'）':'')+'\n\n'+(chapTexts[i]||'未執筆')+'\n\n'; });
+  text+='──── 一席おしまい ────\n';
+  navigator.clipboard.writeText(text).then(function(){alert('口演台本をコピーしました！');}).catch(function(){ var el=document.createElement('textarea'); el.value=text; el.style.cssText='position:fixed;opacity:0'; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); alert('コピーしました！'); });
+}
+function restartAll(){
+  genre=''; struct=''; style='江戸前'; sage='お任せ'; ivStep=0; ivData={}; ivHist=[]; synopsis={}; chars=[]; foreshadows=[]; outline=[]; chapTexts={}; dirReviews={}; editorResult=null; judgeResult=null;
+  asstState={prevSummaries:{},charStatus:{},foreshadowStatus:{}}; subEditorScores={}; readerResults={}; publishResults={};
+  bookId=null; bookTitle='';
+  goP(0);
+}
+
+// ── UI Helpers ──
+function appendIv(role,text){
+  var msgs=document.getElementById('ivMsgs');
+  var div=document.createElement('div'); div.className='iv-msg '+role;
+  var av=document.createElement('div'); av.className='iv-av'; av.textContent=role==='ai'?'📜':'👤';
+  var bub=document.createElement('div'); bub.className='iv-bub';
+  bub.innerHTML=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  div.appendChild(av); div.appendChild(bub); msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+function appendIvTyping(){
+  var msgs=document.getElementById('ivMsgs');
+  var div=document.createElement('div'); div.className='iv-msg ai';
+  div.innerHTML='<div class="iv-av">📜</div><div class="iv-bub"><div class="iv-typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight; return div;
+}
+function rszTA(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,90)+'px'; }
+function ivKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ivSendFn();} }
+</script>
+</body>
+</html>
