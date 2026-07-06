@@ -599,6 +599,26 @@ async function callJSON(prompt,search){
   try{ return JSON.parse(raw.replace(/```json|```/g,'').trim()); }
   catch(e){ return null; }
 }
+// 同一文字・語句が異常に反復する暴走出力を検知し、反復開始位置で切り詰める
+function sanitizeRunaway(text){
+  if(!text) return text;
+  var m=text.match(/(.{1,6}?)\1{9,}/);
+  if(!m) return text;
+  var idx=text.indexOf(m[0]);
+  return text.slice(0,idx).replace(/[\s、。！？」』\)\]]*$/,'');
+}
+// 執筆AI専用：暴走を検知したら反復禁止の指示を添えて再生成（最大3回）
+async function callWriterAI(prompt){
+  var antiRepeat='\n\n※厳守：同じ文字・語句・記号を連続して繰り返し書かないこと。書き終えたらそこで筆を置き、それ以上続けないこと。';
+  var best='';
+  for(var attempt=0;attempt<3;attempt++){
+    var raw=await callAI(attempt===0?prompt:prompt+antiRepeat);
+    var clean=sanitizeRunaway(raw);
+    if(clean&&clean.length>best.length) best=clean;
+    if(clean&&clean.length>=150) return clean;
+  }
+  return best||'（執筆に失敗しました。もう一度お試しください）';
+}
 
 // ══════ 14AI SYSTEM PROMPTS ══════
 
@@ -1005,7 +1025,7 @@ async function genChap(i){
     var dirNote=dirReviews[i]&&dirReviews[i].instructions?'\n\n【師匠からの直しの指示】\n'+dirReviews[i].instructions:'';
     var sageNote=isLast?'\n\n【最重要】この段はサゲの段。必ずサゲ「'+(synopsis.sage||'')+'」（またはそれを磨いた一言）で締めること。サゲの直前に【間】を一拍置くこと。サゲの後に余計な文を続けないこと。':'';
     var writerPrompt=SYS_WRITER+'\n\n作品情報：演目「'+bookTitle+'」ジャンル「'+genre+'」眼目「'+(synopsis.theme||'')+'」\n語り口：'+(STYLE_NOTES[style]||style)+'\n\n人物帳：\n'+charSheet+'\n\n人物帳AIの割り：\n'+briefing+dirNote+'\n\nこの段で張る仕込み：\n'+fsPlant+sageNote+'\n\n前段サマリー（語りの調子を継続）：\n'+prevSummary+'\n\n第'+(i+1)+'段「'+c.title+'」（'+(c.tag||'')+'）を今すぐ執筆。この段の狙い：'+(c.turn||'')+'\n文字数：500〜900字\n段の見出しを最初に書き、口演台本を続けてください。';
-    var text=await callAI(writerPrompt);
+    var text=await callWriterAI(writerPrompt);
     chapTexts[i]=text; ct.textContent=text; cs.textContent='🔍';
 
     // Step4: 前座AIが整合性チェック＆状態更新
@@ -1045,7 +1065,7 @@ async function genChap(i){
     if(dirResult.verdict==='rewrite'){
       ct.innerHTML='<span class="generating">🔄 師匠の指示で書き直し中...</span>';
       writerPrompt+='\n\n【師匠からの直しの指示】\n'+dirResult.instructions;
-      text=await callAI(writerPrompt);
+      text=await callWriterAI(writerPrompt);
       chapTexts[i]=text;
     }
     ct.textContent=text;
